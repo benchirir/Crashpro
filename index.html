@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>AERO CRASH | Like Aviator & JetX · Turbo Multiplier</title>
+    <title>AERO CRASH | Live Rounds · Auto-Play · Turbo+ Speed</title>
     <style>
         * {
             user-select: none;
@@ -135,7 +135,7 @@
             z-index: 1;
         }
         
-        /* Big multiplier display - reduced size */
+        /* multiplier display */
         .multiplier-wrapper {
             text-align: center;
             margin: 10px 0 20px 0;
@@ -156,7 +156,21 @@
             transition: all 0.03s linear;
         }
         
-        /* REMOVED: flight-path / progress bar - completely deleted */
+        /* live indicator */
+        .live-badge {
+            display: inline-block;
+            background: #ff3333;
+            color: white;
+            font-size: 0.7rem;
+            padding: 2px 10px;
+            border-radius: 20px;
+            margin-left: 10px;
+            animation: pulse 1s infinite;
+        }
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
         
         .info-panel {
             display: flex;
@@ -258,7 +272,7 @@
 
 <div class="menu-bar">
     <div class="menu-hyphen" id="menuHyphen">☰</div>
-    <div class="logo">✈️ AERO CRASH · LIKE AVIATOR/JETX</div>
+    <div class="logo">✈️ AERO CRASH · LIVE ROUNDS <span class="live-badge">LIVE</span></div>
     <div style="width:40px;"></div>
 </div>
 
@@ -284,7 +298,7 @@
         <div id="monthlyLeaders"></div>
         <h3>⚡ DAILY HIGH (50x+ SPIKES)</h3>
         <div id="dailyLeaders"></div>
-        <p style="font-size:10px; color:#aaa;">*Static leaderboards · Turbo speed · 50x+ spikes</p>
+        <p style="font-size:10px; color:#aaa;">*Static leaderboards · Turbo+ speed · Auto rounds</p>
     </div>
 </div>
 
@@ -292,13 +306,13 @@
     <div class="multiplier-wrapper">
         <span class="rocket-icon" id="rocketIcon">✈️</span>
         <div id="multiplierDisplay">1.00x</div>
-        <div id="statusMsg" style="font-size:0.85rem; margin-top: 12px; background:#00000080; display:inline-block; padding:6px 20px; border-radius:60px;">⚡ READY · PLACE BET</div>
+        <div id="statusMsg" style="font-size:0.85rem; margin-top: 12px; background:#00000080; display:inline-block; padding:6px 20px; border-radius:60px;">🔄 ROUND IN PROGRESS</div>
     </div>
 
     <div class="info-panel">
         <div class="wallet-card"><div class="label">💰 WALLET</div><div class="value" id="walletBalance">1000.00</div></div>
         <div class="wallet-card"><div class="label">🎁 REFER BONUS</div><div class="value" id="referBalance">0.00</div></div>
-        <div class="wallet-card"><div class="label">⚡ POTENTIAL WIN</div><div class="value" id="potentialWin">0.00</div></div>
+        <div class="wallet-card"><div class="label">⚡ YOUR BET</div><div class="value" id="activeBetDisplay">0.00</div></div>
     </div>
 
     <div class="bet-panel">
@@ -307,7 +321,7 @@
     </div>
 
     <div class="action-buttons">
-        <button class="btn btn-bet" id="placeBetBtn">✈️ PLACE BET</button>
+        <button class="btn btn-bet" id="placeBetBtn">✈️ JOIN NEXT ROUND</button>
         <button class="btn btn-cashout" id="cashoutBtn" disabled>💎 CASH OUT</button>
     </div>
 
@@ -323,7 +337,7 @@
     const statusSpan = document.getElementById('statusMsg');
     const walletSpan = document.getElementById('walletBalance');
     const referBonusSpan = document.getElementById('referBalance');
-    const potentialSpan = document.getElementById('potentialWin');
+    const activeBetDisplay = document.getElementById('activeBetDisplay');
     const betInput = document.getElementById('betAmount');
     const placeBtn = document.getElementById('placeBetBtn');
     const cashoutBtn = document.getElementById('cashoutBtn');
@@ -336,17 +350,18 @@
     // Game state
     let balance = 1000.0;
     let referBonus = 0.0;
-    let currentBet = 0;
-    let isGameActive = false;
+    let currentBet = 0;           // active bet for current round (0 if not in round)
     let hasCashed = false;
     let currentMultiplier = 1.00;
     let crashPoint = 1.00;
     let crashHistory = [];
     
-    // Timing
+    // Round state (game always running)
+    let isRoundActive = false;      // is there a round flying right now?
     let roundInterval = null;
     let startTime = 0;
     let crashDelayMs = 0;
+    let nextRoundTimeout = null;
     
     // Settings
     let soundEnabled = true;
@@ -355,8 +370,8 @@
     let darkMode = true;
     let musicInterval = null;
     
-    // Fixed TURBO speed like Aviator/JetX
-    const TURBO_SPEED_FACTOR = 2.2;
+    // SPEED INCREASED by 0.5x (from 2.2 to 2.7)
+    const SPEED_FACTOR = 2.7;
     
     // Static leaderboards
     const staticWeekly = [
@@ -393,117 +408,132 @@
         ).join('');
     }
     
-    // Generate unpredictable crash (high variance, can reach 50x+ multiple times daily)
+    // Generate unpredictable crash multiplier
     function generateCrashMultiplier() {
         let r = Math.random();
-        if (r < 0.55) return 1.0 + Math.random() * 1.2;      // 1.0x - 2.2x (frequent losses)
-        else if (r < 0.78) return 2.2 + Math.random() * 2.8;  // 2.2x - 5.0x
-        else if (r < 0.92) return 5 + Math.random() * 12;     // 5x - 17x
-        else if (r < 0.97) return 17 + Math.random() * 33;    // 17x - 50x
-        else return 50 + Math.random() * 100;                  // 50x - 150x (jackpot)
+        if (r < 0.55) return 1.0 + Math.random() * 1.2;
+        else if (r < 0.78) return 2.2 + Math.random() * 2.8;
+        else if (r < 0.92) return 5 + Math.random() * 12;
+        else if (r < 0.97) return 17 + Math.random() * 33;
+        else return 50 + Math.random() * 100;
     }
     
     function generateCrashDelay() {
-        // Random duration between 1.2s and 16s - keeps players guessing
         let r = Math.random();
-        if (r < 0.35) return 1200 + Math.random() * 2000;     // 1.2-3.2s early
-        else if (r < 0.65) return 3200 + Math.random() * 4000; // 3.2-7.2s mid
-        else if (r < 0.88) return 7200 + Math.random() * 5000; // 7.2-12.2s late
-        else return 12200 + Math.random() * 6000;               // 12-18s hover
+        // SHORTER delays because speed is increased
+        if (r < 0.35) return 800 + Math.random() * 1500;
+        else if (r < 0.65) return 2300 + Math.random() * 3000;
+        else if (r < 0.88) return 5300 + Math.random() * 4000;
+        else return 9300 + Math.random() * 5000;
     }
     
     function updateMultiplier() {
-        if (!isGameActive) return;
+        if (!isRoundActive) return;
         
         let elapsed = Date.now() - startTime;
         if (elapsed >= crashDelayMs) {
             currentMultiplier = crashPoint;
             multiplierDisplay.innerText = currentMultiplier.toFixed(2) + "x";
-            crashEvent();
+            endRound();
             return;
         }
         
         let progress = elapsed / crashDelayMs;
-        // Smooth exponential ease-out curve like Aviator/JetX
-        let curvePower = 1.35;
+        let curvePower = 1.25;
         let mult = 1 + (crashPoint - 1) * Math.pow(progress, curvePower);
-        // Add micro-turbulence for realism
-        let turbulence = Math.sin(elapsed / 250) * 0.02 * mult;
+        let turbulence = Math.sin(elapsed / 200) * 0.025 * mult;
         mult = Math.max(1.01, Math.min(crashPoint, mult + turbulence));
         currentMultiplier = parseFloat(mult.toFixed(4));
         
         multiplierDisplay.innerText = currentMultiplier.toFixed(2) + "x";
         
-        if (currentBet > 0 && !hasCashed) {
-            potentialSpan.innerText = (currentBet * currentMultiplier).toFixed(2);
+        // Update potential win for current player if they are in round
+        if (currentBet > 0 && !hasCashed && isRoundActive) {
+            let potentialDisplay = document.getElementById('potentialWin');
+            if (potentialDisplay) potentialDisplay.innerText = (currentBet * currentMultiplier).toFixed(2);
+            cashoutBtn.disabled = !(currentMultiplier > 1.02);
+        } else {
+            cashoutBtn.disabled = true;
         }
-        
-        cashoutBtn.disabled = !(isGameActive && currentBet > 0 && !hasCashed && currentMultiplier > 1.02);
     }
     
-    function startRound() {
-        if (isGameActive) return;
-        if (currentBet <= 0) {
-            statusSpan.innerHTML = "⚠️ Place a bet first!";
-            return;
+    function endRound() {
+        if (!isRoundActive) return;
+        if (roundInterval) clearInterval(roundInterval);
+        roundInterval = null;
+        
+        let finalMultiplier = currentMultiplier;
+        isRoundActive = false;
+        
+        // Handle player's bet if they were in this round and didn't cash out
+        if (currentBet > 0 && !hasCashed) {
+            playSound('crash');
+            statusSpan.innerHTML = `💥 CRASHED at ${finalMultiplier.toFixed(2)}x · You lost $${currentBet.toFixed(2)}`;
+            currentBet = 0;
+            activeBetDisplay.innerText = "0.00";
+        } else if (hasCashed) {
+            statusSpan.innerHTML = `✅ You cashed out at ${finalMultiplier.toFixed(2)}x!`;
+        } else {
+            statusSpan.innerHTML = `💀 CRASH at ${finalMultiplier.toFixed(2)}x`;
         }
         
+        if (rocketIcon) rocketIcon.classList.remove('flying');
+        
+        // Add to history
+        crashHistory.unshift(finalMultiplier.toFixed(2) + 'x');
+        if (crashHistory.length > 12) crashHistory.pop();
+        historyDiv.innerHTML = crashHistory.map(h => `<span style="background:#1e1a3a; padding:4px 14px; border-radius:30px; ${parseFloat(h)>=50?'color:#ffaa33; font-weight:bold;':''}">${h}</span>`).join('');
+        
+        // Reset player's round-specific state (but keep balance changes already applied)
+        hasCashed = false;
+        cashoutBtn.disabled = true;
+        
+        // Update potential win display to 0
+        let potentialDisplay = document.getElementById('potentialWin');
+        if (potentialDisplay) potentialDisplay.innerText = "0.00";
+        
+        // Schedule next round automatically (even if player didn't bet)
+        if (nextRoundTimeout) clearTimeout(nextRoundTimeout);
+        nextRoundTimeout = setTimeout(() => {
+            startNewRound();
+        }, 1500);
+    }
+    
+    function startNewRound() {
+        if (isRoundActive) return;
+        
+        // Reset round variables
         crashPoint = generateCrashMultiplier();
         crashDelayMs = generateCrashDelay();
-        
         currentMultiplier = 1.00;
         multiplierDisplay.innerText = "1.00x";
-        isGameActive = true;
-        hasCashed = false;
+        isRoundActive = true;
         startTime = Date.now();
         
-        statusSpan.innerHTML = `✈️ FLYING · Crash up to ${crashPoint.toFixed(2)}x · CASHOUT ANYTIME!`;
+        statusSpan.innerHTML = `✈️ ROUND FLYING · Crash up to ${crashPoint.toFixed(2)}x · ${currentBet > 0 ? 'YOUR BET ACTIVE' : 'Place bet for next round!'}`;
+        
         if (animationsEnabled && rocketIcon) rocketIcon.classList.add('flying');
         
-        updateUI();
+        // Update potential if player is in round
+        if (currentBet > 0 && !hasCashed) {
+            let potentialDisplay = document.getElementById('potentialWin');
+            if (potentialDisplay) potentialDisplay.innerText = (currentBet * currentMultiplier).toFixed(2);
+            cashoutBtn.disabled = false;
+        } else {
+            cashoutBtn.disabled = true;
+        }
         
         if (roundInterval) clearInterval(roundInterval);
         roundInterval = setInterval(() => updateMultiplier(), 30);
     }
     
-    function crashEvent() {
-        if (!isGameActive) return;
-        if (roundInterval) clearInterval(roundInterval);
-        roundInterval = null;
-        isGameActive = false;
-        
-        if (currentBet > 0 && !hasCashed) {
-            playSound('crash');
-            statusSpan.innerHTML = `💥 CRASHED at ${currentMultiplier.toFixed(2)}x · Lost $${currentBet.toFixed(2)}`;
-            currentBet = 0;
-        } else if (hasCashed) {
-            statusSpan.innerHTML = `✅ CASHED OUT at ${currentMultiplier.toFixed(2)}x!`;
-        } else {
-            statusSpan.innerHTML = `💀 CRASH at ${currentMultiplier.toFixed(2)}x`;
-        }
-        
-        if (rocketIcon) rocketIcon.classList.remove('flying');
-        
-        crashHistory.unshift(currentMultiplier.toFixed(2) + 'x');
-        if (crashHistory.length > 12) crashHistory.pop();
-        historyDiv.innerHTML = crashHistory.map(h => `<span style="background:#1e1a3a; padding:4px 14px; border-radius:30px; ${parseFloat(h)>=50?'color:#ffaa33; font-weight:bold;':''}">${h}</span>`).join('');
-        
-        currentBet = 0;
-        hasCashed = false;
-        currentMultiplier = 1;
-        multiplierDisplay.innerText = "1.00x";
-        updateUI();
-        
-        setTimeout(() => {
-            if (!isGameActive) statusSpan.innerHTML = "✈️ Place bet to start · CRASH ANYTIME!";
-        }, 1500);
-    }
-    
-    function placeBet() {
-        if (isGameActive) {
-            statusSpan.innerHTML = "⏳ Round active! Wait for crash or cashout.";
+    // Player joins the NEXT round (doesn't interrupt current round)
+    function placeBetForNextRound() {
+        if (currentBet > 0) {
+            statusSpan.innerHTML = "⚠️ You already have an active bet for current round! Cash out or wait for crash.";
             return;
         }
+        
         let amount = parseFloat(betInput.value);
         if (isNaN(amount) || amount < 10) {
             statusSpan.innerHTML = "❌ Minimum bet $10";
@@ -513,41 +543,67 @@
             statusSpan.innerHTML = "❌ Insufficient balance!";
             return;
         }
+        
+        // Deduct balance immediately (bet is locked)
         balance -= amount;
         currentBet = amount;
+        activeBetDisplay.innerText = currentBet.toFixed(2);
         playSound('bet');
+        
         updateUI();
-        startRound();
+        
+        // If round is active, player will participate in current round
+        if (isRoundActive) {
+            hasCashed = false;
+            statusSpan.innerHTML = `✅ Bet $${amount} placed! You are in the current round. Cashout before crash!`;
+            cashoutBtn.disabled = false;
+            let potentialDisplay = document.getElementById('potentialWin');
+            if (potentialDisplay) potentialDisplay.innerText = (currentBet * currentMultiplier).toFixed(2);
+        } else {
+            // Round just ended, wait for next
+            statusSpan.innerHTML = `✅ Bet $${amount} placed! You will join the next round.`;
+            if (nextRoundTimeout) {
+                // Round will start soon
+            }
+        }
+        updateUI();
     }
     
     function cashOut() {
-        if (!isGameActive || currentBet <= 0 || hasCashed) return;
-        if (currentMultiplier < 1.02) {
-            statusSpan.innerHTML = "⚠️ Multiplier too low! Wait a second.";
+        if (!isRoundActive || currentBet <= 0 || hasCashed) {
+            statusSpan.innerHTML = "⚠️ No active bet to cash out!";
             return;
         }
+        if (currentMultiplier < 1.02) {
+            statusSpan.innerHTML = "⚠️ Multiplier too low! Wait a moment.";
+            return;
+        }
+        
         let winAmount = currentBet * currentMultiplier;
         balance += winAmount;
         playSound('cashout');
         hasCashed = true;
         statusSpan.innerHTML = `💰 CASHED OUT $${winAmount.toFixed(2)} at ${currentMultiplier.toFixed(2)}x! 🎉`;
+        
+        // Clear potential win
+        let potentialDisplay = document.getElementById('potentialWin');
+        if (potentialDisplay) potentialDisplay.innerText = "0.00";
+        
         currentBet = 0;
-        updateUI();
+        activeBetDisplay.innerText = "0.00";
         cashoutBtn.disabled = true;
+        updateUI();
+        
         if (rocketIcon) rocketIcon.classList.remove('flying');
+        // Player is out of this round, but round continues
     }
     
     function updateUI() {
         walletSpan.innerText = balance.toFixed(2);
         referBonusSpan.innerText = referBonus.toFixed(2);
-        if (isGameActive && currentBet > 0 && !hasCashed) {
-            potentialSpan.innerText = (currentBet * currentMultiplier).toFixed(2);
-        } else {
-            potentialSpan.innerText = "0.00";
-        }
+        activeBetDisplay.innerText = currentBet.toFixed(2);
     }
     
-    // Sound effects (smooth)
     function playSound(type) {
         if (!soundEnabled) return;
         try {
@@ -605,14 +661,15 @@
         else alert("Insufficient wallet balance");
     }
     function showProfile() {
-        alert(`👤 PILOT: AERO_TRADER\n💰 Wallet: $${balance.toFixed(2)}\n🎁 Refer Bonus: $${referBonus.toFixed(2)} (need $1000 to withdraw)\n📊 Total flights: ${crashHistory.length}\n🔥 50x+ spikes today: active`);
+        alert(`👤 PILOT: AERO_TRADER\n💰 Wallet: $${balance.toFixed(2)}\n🎁 Refer Bonus: $${referBonus.toFixed(2)} (need $1000 to withdraw)\n📊 Total flights seen: ${crashHistory.length}\n🔥 Speed: TURBO+ (2.7x)`);
     }
     function showManual() {
         let modal = document.createElement('div'); modal.className = 'modal';
         modal.innerHTML = `<div class="modal-card"><h2>📘 AERO CRASH MANUAL</h2>
-        <div class="manual-step"><strong>✈️ LIKE AVIATOR / JETX</strong><br>Turbo speed · Unpredictable crash · Cashout anytime!</div>
-        <div class="manual-step"><strong>1.</strong> Deposit min $10.<br><strong>2.</strong> Enter BET (min $10) & click PLACE BET.<br><strong>3.</strong> Multiplier rises FAST. Click CASH OUT before random CRASH → WIN = BET x MULTIPLIER.<br><strong>4.</strong> If CRASH hits before cashout → you LOSE the bet.<br><strong>5.</strong> Crash timing is random (1s - 18s). NO PATTERN to study!<br><strong>6.</strong> 50x+ spikes occur multiple times daily.<br><strong>7.</strong> Refer friends → $50 each (needs $1000 refer bonus to withdraw).<br><strong>8.</strong> Withdraw min $100 from wallet.</div>
-        <button id="closeManualBtn" class="close-modal">Start Flying!</button></div>`;
+        <div class="manual-step"><strong>✈️ LIVE ROUNDS</strong><br>The game runs AUTOMATICALLY 24/7. Rounds start every few seconds whether you play or not!</div>
+        <div class="manual-step"><strong>⚡ TURBO+ SPEED</strong><br>Multiplier rises 2.7x faster than normal. Very fast rounds!</div>
+        <div class="manual-step"><strong>1.</strong> Deposit min $10.<br><strong>2.</strong> Enter BET & click "JOIN NEXT ROUND". Your bet is locked.<br><strong>3.</strong> Watch the multiplier rise. Click CASH OUT before CRASH → WIN = BET x MULTIPLIER.<br><strong>4.</strong> If CRASH hits before cashout → you LOSE the bet.<br><strong>5.</strong> Crash timing is random (0.8s - 14s). NO PATTERN!<br><strong>6.</strong> Rounds continue automatically. You can join any round.</div>
+        <button id="closeManualBtn" class="close-modal">Start Playing!</button></div>`;
         document.body.appendChild(modal);
         document.getElementById('closeManualBtn')?.addEventListener('click', () => modal.remove());
     }
@@ -654,17 +711,33 @@
     document.querySelectorAll('.chip').forEach(btn => btn.addEventListener('click', (e) => {
         let add = parseInt(btn.dataset.chip);
         let newVal = parseFloat(betInput.value) + add;
-        if (newVal > balance && !isGameActive) newVal = balance;
+        if (newVal > balance && !isRoundActive) newVal = balance;
         betInput.value = Math.max(1, newVal.toFixed(2));
     }));
-    placeBtn.addEventListener('click', placeBet);
+    placeBtn.addEventListener('click', placeBetForNextRound);
     cashoutBtn.addEventListener('click', cashOut);
     
-    updateUI();
-    applyDarkLight();
-    updateSidebarToggles();
-    renderStaticLeaderboards();
-    statusSpan.innerHTML = "✈️ LIKE AVIATOR/JETX · TURBO SPEED · CRASH ANYTIME!";
+    // Initialize - start first round immediately
+    function init() {
+        updateUI();
+        applyDarkLight();
+        updateSidebarToggles();
+        renderStaticLeaderboards();
+        // Start the first round
+        startNewRound();
+        statusSpan.innerHTML = "🔄 ROUND IN PROGRESS · Place bet to join!";
+    }
+    
+    // Add potential win display to info panel
+    const infoPanel = document.querySelector('.info-panel');
+    if (infoPanel && !document.getElementById('potentialWin')) {
+        const newCard = document.createElement('div');
+        newCard.className = 'wallet-card';
+        newCard.innerHTML = '<div class="label">⚡ POTENTIAL WIN</div><div class="value" id="potentialWin">0.00</div>';
+        infoPanel.appendChild(newCard);
+    }
+    
+    init();
 </script>
 </body>
-            </html>
+    </html>
