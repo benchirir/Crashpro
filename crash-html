@@ -1,0 +1,698 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>AERO CRASH | Full Backend Simulation · User Accounts</title>
+    <style>
+        * {
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: radial-gradient(ellipse at 30% 20%, #0a0a1a, #020108);
+            min-height: 100vh;
+            font-family: 'Segoe UI', 'Poppins', 'Inter', system-ui, sans-serif;
+            margin: 0;
+            padding: 0;
+            transition: filter 0.2s, background 0.2s;
+        }
+
+        body.light-mode {
+            background: #f0f2f5;
+            color: #1a1a2e;
+        }
+        body.light-mode .game-container, body.light-mode .menu-bar, body.light-mode .sidebar {
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(12px);
+            border-color: #ffb347;
+            color: #1a1a2e;
+        }
+        body.light-mode .value, body.light-mode #multiplierDisplay {
+            color: #ff8c42;
+        }
+        
+        /* sidebar */
+        .sidebar {
+            position: fixed;
+            top: 0;
+            left: -320px;
+            width: 300px;
+            height: 100%;
+            background: rgba(10, 10, 26, 0.95);
+            backdrop-filter: blur(16px);
+            z-index: 200;
+            transition: left 0.3s ease;
+            padding: 24px 16px;
+            border-right: 1px solid #ffb34760;
+            box-shadow: 4px 0 20px rgba(0,0,0,0.5);
+            overflow-y: auto;
+        }
+        .sidebar.open { left: 0; }
+        .sidebar h3 { color: #ffd966; margin-top: 0; border-bottom: 1px solid #ffb347; padding-bottom: 8px; }
+        .menu-hyphen { font-size: 2rem; cursor: pointer; padding: 0 16px; color: #ffd966; font-weight: bold; letter-spacing: 4px; z-index: 101; position: relative; }
+        .sidebar-section { margin: 20px 0; }
+        .sidebar-btn {
+            width: 100%;
+            background: #1e1a3a;
+            border: none;
+            padding: 10px;
+            margin: 6px 0;
+            border-radius: 40px;
+            color: #ffdfa0;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        .sidebar-btn:active { transform: scale(0.97); background: #3a2e70; }
+        .toggle-row { display: flex; justify-content: space-between; align-items: center; margin: 12px 0; }
+        .toggle-switch {
+            width: 44px;
+            height: 22px;
+            background: #333;
+            border-radius: 30px;
+            cursor: pointer;
+            position: relative;
+        }
+        .toggle-switch.active { background: #ffb347; }
+        .toggle-switch:after {
+            content: "";
+            width: 18px;
+            height: 18px;
+            background: white;
+            border-radius: 50%;
+            position: absolute;
+            top: 2px;
+            left: 3px;
+            transition: 0.1s;
+        }
+        .toggle-switch.active:after { left: 23px; }
+
+        .sidebar-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 150;
+            display: none;
+        }
+        .sidebar-overlay.active { display: block; }
+
+        /* main layout */
+        .menu-bar {
+            background: rgba(0, 0, 0, 0.75);
+            backdrop-filter: blur(16px);
+            padding: 8px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid rgba(255, 200, 80, 0.4);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        .logo {
+            font-weight: 800;
+            background: linear-gradient(135deg, #FFD966, #FF8C42);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            font-size: 1.3rem;
+        }
+        .game-container {
+            max-width: 820px;
+            margin: 20px auto;
+            background: rgba(5, 8, 22, 0.7);
+            backdrop-filter: blur(12px);
+            border-radius: 48px;
+            padding: 20px 24px 30px;
+            box-shadow: 0 25px 40px black;
+            border: 1px solid #f0a34b60;
+            position: relative;
+            z-index: 1;
+        }
+        
+        .multiplier-wrapper {
+            text-align: center;
+            margin: 10px 0 20px 0;
+            padding: 20px 20px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 50px;
+        }
+        #multiplierDisplay {
+            font-size: 4rem;
+            font-weight: 900;
+            background: linear-gradient(135deg, #FFE6B0, #FFB347);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            font-family: monospace;
+            letter-spacing: 4px;
+        }
+        .live-badge {
+            display: inline-block;
+            background: #ff3333;
+            color: white;
+            font-size: 0.7rem;
+            padding: 2px 10px;
+            border-radius: 20px;
+            margin-left: 10px;
+            animation: pulse 1s infinite;
+        }
+        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
+        
+        .info-panel {
+            display: flex;
+            justify-content: space-between;
+            background: #03000f99;
+            border-radius: 60px;
+            padding: 12px 20px;
+            margin: 16px 0;
+            flex-wrap: wrap;
+        }
+        .wallet-card { flex: 1; text-align: center; }
+        .label { font-size: 0.7rem; color: #aa99ff; letter-spacing: 1px; }
+        .value { font-size: 1.6rem; font-weight: bold; color: #FFE5A3; font-family: monospace; }
+        .bet-panel {
+            background: #0b0722;
+            border-radius: 60px;
+            padding: 12px 18px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .bet-input input {
+            background: #01000c;
+            border: none;
+            font-size: 1.3rem;
+            width: 100px;
+            color: gold;
+            font-weight: bold;
+            outline: none;
+            border-radius: 40px;
+            padding: 6px 12px;
+        }
+        .chip { background: #2a2350; border: none; padding: 8px 16px; border-radius: 40px; color: white; cursor: pointer; margin: 0 4px; }
+        .chip:active { transform: scale(0.95); }
+        .action-buttons { display: flex; gap: 16px; margin: 18px 0; }
+        .btn {
+            flex: 1;
+            padding: 14px;
+            font-weight: bold;
+            border: none;
+            border-radius: 60px;
+            font-size: 1.2rem;
+            cursor: pointer;
+            transition: 0.05s linear;
+        }
+        .btn-bet { background: linear-gradient(95deg, #2b7a3e, #1e5a2e); color: white; box-shadow: 0 5px 0 #0a3a1a; }
+        .btn-cashout { background: linear-gradient(95deg, #e07c1f, #c06810); color: #1e1a0a; box-shadow: 0 5px 0 #8a4f0e; }
+        .btn:active { transform: translateY(2px); }
+        .btn:disabled { opacity: 0.45; transform: none; cursor: not-allowed; }
+        .history-area { margin-top: 20px; background: #02000c80; border-radius: 40px; padding: 12px; }
+        .history-list { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 6px; }
+        .leaderboard-entry { display: flex; justify-content: space-between; padding: 6px 0; border-bottom: 1px solid #ffb34740; font-size: 0.85rem; }
+        .highlight-50 { color: #ffaa33; font-weight: bold; }
+        .modal {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: #000000cc;
+            backdrop-filter: blur(8px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+        .modal-card {
+            background: #15122b;
+            border-radius: 48px;
+            padding: 24px;
+            max-width: 400px;
+            width: 90%;
+            text-align: center;
+            border: 1px solid gold;
+        }
+        .manual-step { background: #0f0c21; margin: 12px 0; padding: 12px; border-radius: 28px; text-align: left; }
+        .close-modal { background: #7a5a2a; margin-top: 16px; padding: 8px 20px; border: none; border-radius: 40px; color: white; cursor: pointer; }
+        .rocket-icon { font-size: 1.8rem; display: inline-block; margin-right: 8px; }
+        @keyframes flyPulse { 0%, 100% { transform: translateY(0px); } 50% { transform: translateY(-3px); } }
+        .flying { animation: flyPulse 0.2s ease infinite; }
+        .username-display { background: #ffb34720; padding: 4px 12px; border-radius: 40px; font-size: 0.8rem; }
+    </style>
+</head>
+<body>
+
+<div id="sidebarOverlay" class="sidebar-overlay"></div>
+
+<div class="menu-bar">
+    <div class="menu-hyphen" id="menuHyphen">☰</div>
+    <div class="logo">✈️ AERO CRASH · BACKEND READY <span class="live-badge">LIVE</span></div>
+    <div class="username-display" id="usernameDisplay">Guest</div>
+</div>
+
+<div class="sidebar" id="sidebar">
+    <h3>⚙️ SETTINGS & MENU</h3>
+    <div class="sidebar-section">
+        <div class="toggle-row"><span>🌙 Dark / ☀️ Light</span><div id="darkLightToggle" class="toggle-switch"></div></div>
+        <div class="toggle-row"><span>🔊 Sound Effects</span><div id="soundToggleSide" class="toggle-switch active"></div></div>
+        <div class="toggle-row"><span>🎵 Background Music</span><div id="musicToggleSide" class="toggle-switch"></div></div>
+        <div class="toggle-row"><span>✨ Animations</span><div id="animToggleSide" class="toggle-switch active"></div></div>
+    </div>
+    <div class="sidebar-section">
+        <button class="sidebar-btn" id="authBtn">🔐 LOGIN / REGISTER</button>
+        <button class="sidebar-btn" id="profileBtn">👤 MY PROFILE</button>
+        <button class="sidebar-btn" id="depositBtnSide">💰 DEPOSIT</button>
+        <button class="sidebar-btn" id="withdrawBtnSide">💸 WITHDRAW</button>
+        <button class="sidebar-btn" id="manualBtnSide">📖 MANUAL</button>
+        <button class="sidebar-btn" id="referBtnSide">🏆 REFER & EARN</button>
+        <button class="sidebar-btn" id="logoutBtn" style="background:#5a1a1a;">🚪 LOGOUT</button>
+    </div>
+    <div class="sidebar-section">
+        <h3>🏅 WEEKLY LEADERBOARD</h3>
+        <div id="weeklyLeaders"></div>
+        <h3>📅 MONTHLY BEST</h3>
+        <div id="monthlyLeaders"></div>
+        <h3>⚡ DAILY HIGH</h3>
+        <div id="dailyLeaders"></div>
+    </div>
+</div>
+
+<div class="game-container">
+    <div class="multiplier-wrapper">
+        <span class="rocket-icon" id="rocketIcon">✈️</span>
+        <div id="multiplierDisplay">1.00x</div>
+        <div id="statusMsg" style="font-size:0.85rem; margin-top: 12px; background:#00000080; display:inline-block; padding:6px 20px; border-radius:60px;">🔄 ROUND IN PROGRESS</div>
+    </div>
+
+    <div class="info-panel">
+        <div class="wallet-card"><div class="label">💰 WALLET</div><div class="value" id="walletBalance">0.00</div></div>
+        <div class="wallet-card"><div class="label">🎁 REFER BONUS</div><div class="value" id="referBalance">0.00</div></div>
+        <div class="wallet-card"><div class="label">⚡ YOUR BET</div><div class="value" id="activeBetDisplay">0.00</div></div>
+        <div class="wallet-card"><div class="label">🏆 POTENTIAL WIN</div><div class="value" id="potentialWin">0.00</div></div>
+    </div>
+
+    <div class="bet-panel">
+        <div class="bet-input"><label>💎 BET $</label><input type="number" id="betAmount" value="10" step="5" min="1"></div>
+        <div><button class="chip" data-chip="10">+10</button><button class="chip" data-chip="25">+25</button><button class="chip" data-chip="50">+50</button><button class="chip" data-chip="100">+100</button></div>
+    </div>
+
+    <div class="action-buttons">
+        <button class="btn btn-bet" id="placeBetBtn">✈️ JOIN ROUND</button>
+        <button class="btn btn-cashout" id="cashoutBtn" disabled>💎 CASH OUT</button>
+    </div>
+
+    <div class="history-area">
+        <div style="font-size:0.7rem; letter-spacing:2px;">📜 CRASH HISTORY</div>
+        <div class="history-list" id="historyList">—</div>
+    </div>
+</div>
+
+<script>
+    // ==================== BACKEND SIMULATION (localStorage) ====================
+    // Users database stored in localStorage
+    let currentUser = null;
+    
+    function initBackend() {
+        if (!localStorage.getItem('aero_users')) {
+            const defaultUsers = {
+                "demo": {
+                    username: "demo",
+                    password: "demo123",
+                    balance: 1000,
+                    referBonus: 0,
+                    referralCode: "DEMO" + Math.floor(Math.random()*10000),
+                    referredBy: null,
+                    totalPlayed: 0,
+                    totalWon: 0,
+                    history: []
+                }
+            };
+            localStorage.setItem('aero_users', JSON.stringify(defaultUsers));
+        }
+        // Auto-login demo for first time
+        if (!currentUser && !localStorage.getItem('aero_current_user')) {
+            // try to auto login demo
+            const users = JSON.parse(localStorage.getItem('aero_users'));
+            if (users['demo']) {
+                currentUser = { ...users['demo'], username: 'demo' };
+                localStorage.setItem('aero_current_user', 'demo');
+                updateUIForUser();
+            }
+        } else {
+            const savedUser = localStorage.getItem('aero_current_user');
+            if (savedUser && savedUser !== 'null') {
+                const users = JSON.parse(localStorage.getItem('aero_users'));
+                if (users[savedUser]) {
+                    currentUser = { ...users[savedUser], username: savedUser };
+                    updateUIForUser();
+                }
+            }
+        }
+        if (!currentUser) {
+            document.getElementById('walletBalance').innerText = "0.00";
+            document.getElementById('usernameDisplay').innerText = "Guest";
+        }
+    }
+    
+    function saveCurrentUser() {
+        if (currentUser) {
+            const users = JSON.parse(localStorage.getItem('aero_users'));
+            users[currentUser.username] = {
+                username: currentUser.username,
+                password: currentUser.password,
+                balance: currentUser.balance,
+                referBonus: currentUser.referBonus,
+                referralCode: currentUser.referralCode,
+                referredBy: currentUser.referredBy,
+                totalPlayed: currentUser.totalPlayed,
+                totalWon: currentUser.totalWon,
+                history: currentUser.history || []
+            };
+            localStorage.setItem('aero_users', JSON.stringify(users));
+            localStorage.setItem('aero_current_user', currentUser.username);
+        }
+    }
+    
+    function updateUIForUser() {
+        if (currentUser) {
+            document.getElementById('walletBalance').innerText = currentUser.balance.toFixed(2);
+            document.getElementById('referBalance').innerText = currentUser.referBonus.toFixed(2);
+            document.getElementById('usernameDisplay').innerHTML = currentUser.username;
+            document.getElementById('activeBetDisplay').innerText = "0.00";
+        } else {
+            document.getElementById('walletBalance').innerText = "0.00";
+            document.getElementById('referBalance').innerText = "0.00";
+            document.getElementById('usernameDisplay').innerHTML = "Guest";
+        }
+    }
+    
+    function showAuthModal() {
+        let modal = document.createElement('div'); modal.className = 'modal';
+        modal.innerHTML = `<div class="modal-card">
+            <h2>🔐 ACCOUNT ACCESS</h2>
+            <input type="text" id="loginUsername" placeholder="Username" style="width:80%; padding:10px; margin:8px; border-radius:40px; border:none;">
+            <input type="password" id="loginPassword" placeholder="Password" style="width:80%; padding:10px; margin:8px; border-radius:40px; border:none;">
+            <button id="doLoginBtn" class="chip">LOGIN</button>
+            <button id="doRegisterBtn" class="chip">REGISTER</button>
+            <hr>
+            <p style="font-size:12px;">Demo: demo / demo123</p>
+            <button id="closeAuth" class="close-modal">Close</button>
+        </div>`;
+        document.body.appendChild(modal);
+        document.getElementById('doLoginBtn').onclick = () => {
+            const username = document.getElementById('loginUsername').value.trim();
+            const password = document.getElementById('loginPassword').value;
+            const users = JSON.parse(localStorage.getItem('aero_users'));
+            if (users[username] && users[username].password === password) {
+                currentUser = { ...users[username], username: username };
+                saveCurrentUser();
+                updateUIForUser();
+                statusSpan.innerHTML = `✅ Welcome back, ${username}!`;
+                modal.remove();
+                location.reload(); // refresh game state
+            } else { alert("Invalid credentials"); }
+        };
+        document.getElementById('doRegisterBtn').onclick = () => {
+            const username = document.getElementById('loginUsername').value.trim();
+            const password = document.getElementById('loginPassword').value;
+            if (!username || !password) { alert("Enter username/password"); return; }
+            const users = JSON.parse(localStorage.getItem('aero_users'));
+            if (users[username]) { alert("Username exists"); return; }
+            users[username] = {
+                username: username,
+                password: password,
+                balance: 500,
+                referBonus: 0,
+                referralCode: username.toUpperCase() + Math.floor(Math.random()*10000),
+                referredBy: null,
+                totalPlayed: 0,
+                totalWon: 0,
+                history: []
+            };
+            localStorage.setItem('aero_users', JSON.stringify(users));
+            currentUser = users[username];
+            currentUser.username = username;
+            saveCurrentUser();
+            updateUIForUser();
+            statusSpan.innerHTML = `🎉 Welcome ${username}! $500 bonus credited.`;
+            modal.remove();
+            location.reload();
+        };
+        document.getElementById('closeAuth').onclick = () => modal.remove();
+    }
+    
+    function logout() {
+        if (currentUser) {
+            saveCurrentUser();
+            currentUser = null;
+            localStorage.removeItem('aero_current_user');
+            updateUIForUser();
+            statusSpan.innerHTML = "Logged out. Login to play!";
+            location.reload();
+        }
+    }
+    
+    // Game State (auto-running rounds)
+    let isRoundActive = false;
+    let roundInterval = null;
+    let startTime = 0;
+    let crashDelayMs = 0;
+    let crashPoint = 1.00;
+    let currentMultiplier = 1.00;
+    let nextRoundTimeout = null;
+    
+    let currentBet = 0;
+    let hasCashed = false;
+    let crashHistory = [];
+    
+    // Settings
+    let soundEnabled = true, musicEnabled = false, animationsEnabled = true, darkMode = true;
+    let musicInterval = null;
+    const SPEED_FACTOR = 2.7;
+    
+    const staticLeaderboards = {
+        weekly: [{name:"🚀 ASTRO", mult:"87x"},{name:"💎 WHALE", mult:"64x"},{name:"⚡ VOLT", mult:"52x"}],
+        monthly: [{name:"🏆 KING", mult:"215x"},{name:"🌟 MASTER", mult:"189x"}],
+        daily: [{name:"⚡ SPIKE", mult:"73x"},{name:"💎 FAST", mult:"58x"}]
+    };
+    
+    function generateCrashMultiplier() {
+        let r = Math.random();
+        if (r < 0.55) return 1.0 + Math.random() * 1.2;
+        else if (r < 0.78) return 2.2 + Math.random() * 2.8;
+        else if (r < 0.92) return 5 + Math.random() * 12;
+        else if (r < 0.97) return 17 + Math.random() * 33;
+        else return 50 + Math.random() * 100;
+    }
+    
+    function generateCrashDelay() {
+        let r = Math.random();
+        if (r < 0.35) return 800 + Math.random() * 1500;
+        else if (r < 0.65) return 2300 + Math.random() * 3000;
+        else if (r < 0.88) return 5300 + Math.random() * 4000;
+        else return 9300 + Math.random() * 5000;
+    }
+    
+    function updateMultiplier() {
+        if (!isRoundActive) return;
+        let elapsed = Date.now() - startTime;
+        if (elapsed >= crashDelayMs) {
+            currentMultiplier = crashPoint;
+            document.getElementById('multiplierDisplay').innerText = currentMultiplier.toFixed(2) + "x";
+            endRound();
+            return;
+        }
+        let progress = elapsed / crashDelayMs;
+        let mult = 1 + (crashPoint - 1) * Math.pow(progress, 1.25);
+        mult = Math.max(1.01, Math.min(crashPoint, mult + Math.sin(elapsed/200)*0.025*mult));
+        currentMultiplier = parseFloat(mult.toFixed(4));
+        document.getElementById('multiplierDisplay').innerText = currentMultiplier.toFixed(2) + "x";
+        
+        if (currentBet > 0 && !hasCashed && isRoundActive) {
+            document.getElementById('potentialWin').innerText = (currentBet * currentMultiplier).toFixed(2);
+            document.getElementById('cashoutBtn').disabled = !(currentMultiplier > 1.02);
+        } else {
+            document.getElementById('cashoutBtn').disabled = true;
+        }
+    }
+    
+    function endRound() {
+        if (!isRoundActive) return;
+        if (roundInterval) clearInterval(roundInterval);
+        roundInterval = null;
+        let finalMult = currentMultiplier;
+        isRoundActive = false;
+        
+        if (currentBet > 0 && !hasCashed && currentUser) {
+            playSound('crash');
+            document.getElementById('statusMsg').innerHTML = `💥 CRASHED at ${finalMult.toFixed(2)}x · Lost $${currentBet.toFixed(2)}`;
+            if (currentUser) {
+                currentUser.totalPlayed = (currentUser.totalPlayed || 0) + 1;
+                saveCurrentUser();
+            }
+            currentBet = 0;
+            document.getElementById('activeBetDisplay').innerText = "0.00";
+        } else if (hasCashed) {
+            document.getElementById('statusMsg').innerHTML = `✅ Cashed out at ${finalMult.toFixed(2)}x!`;
+        } else {
+            document.getElementById('statusMsg').innerHTML = `💀 CRASH at ${finalMult.toFixed(2)}x`;
+        }
+        
+        document.getElementById('rocketIcon')?.classList.remove('flying');
+        
+        crashHistory.unshift(finalMult.toFixed(2) + 'x');
+        if (crashHistory.length > 12) crashHistory.pop();
+        document.getElementById('historyList').innerHTML = crashHistory.map(h => `<span style="background:#1e1a3a; padding:4px 14px; border-radius:30px;">${h}</span>`).join('');
+        
+        hasCashed = false;
+        document.getElementById('cashoutBtn').disabled = true;
+        document.getElementById('potentialWin').innerText = "0.00";
+        
+        if (nextRoundTimeout) clearTimeout(nextRoundTimeout);
+        nextRoundTimeout = setTimeout(() => startNewRound(), 1500);
+    }
+    
+    function startNewRound() {
+        if (isRoundActive) return;
+        crashPoint = generateCrashMultiplier();
+        crashDelayMs = generateCrashDelay();
+        currentMultiplier = 1.00;
+        document.getElementById('multiplierDisplay').innerText = "1.00x";
+        isRoundActive = true;
+        startTime = Date.now();
+        document.getElementById('statusMsg').innerHTML = `✈️ ROUND FLYING · Crash up to ${crashPoint.toFixed(2)}x`;
+        if (animationsEnabled) document.getElementById('rocketIcon')?.classList.add('flying');
+        if (roundInterval) clearInterval(roundInterval);
+        roundInterval = setInterval(updateMultiplier, 30);
+    }
+    
+    function placeBet() {
+        if (!currentUser) { alert("Please login first!"); showAuthModal(); return; }
+        if (currentBet > 0) { document.getElementById('statusMsg').innerHTML = "⚠️ You already have an active bet!"; return; }
+        let amount = parseFloat(document.getElementById('betAmount').value);
+        if (isNaN(amount) || amount < 10) { alert("Min bet $10"); return; }
+        if (amount > currentUser.balance) { alert("Insufficient balance!"); return; }
+        currentUser.balance -= amount;
+        currentBet = amount;
+        hasCashed = false;
+        document.getElementById('activeBetDisplay').innerText = currentBet.toFixed(2);
+        saveCurrentUser();
+        updateUIForUser();
+        playSound('bet');
+        document.getElementById('statusMsg').innerHTML = `✅ Bet $${amount} placed! Cashout before crash!`;
+        if (isRoundActive) {
+            document.getElementById('cashoutBtn').disabled = false;
+            document.getElementById('potentialWin').innerText = (currentBet * currentMultiplier).toFixed(2);
+        }
+    }
+    
+    function cashOut() {
+        if (!currentUser) { alert("Login required"); return; }
+        if (!isRoundActive || currentBet <= 0 || hasCashed) { alert("No active bet to cash out"); return; }
+        if (currentMultiplier < 1.02) { alert("Multiplier too low"); return; }
+        let winAmount = currentBet * currentMultiplier;
+        currentUser.balance += winAmount;
+        currentUser.totalWon = (currentUser.totalWon || 0) + winAmount;
+        playSound('cashout');
+        hasCashed = true;
+        document.getElementById('statusMsg').innerHTML = `💰 CASHED OUT $${winAmount.toFixed(2)} at ${currentMultiplier.toFixed(2)}x!`;
+        currentBet = 0;
+        document.getElementById('activeBetDisplay').innerText = "0.00";
+        document.getElementById('potentialWin').innerText = "0.00";
+        document.getElementById('cashoutBtn').disabled = true;
+        saveCurrentUser();
+        updateUIForUser();
+    }
+    
+    function showProfile() {
+        if (!currentUser) { alert("Login first"); return; }
+        alert(`👤 USER: ${currentUser.username}\n💰 Wallet: $${currentUser.balance.toFixed(2)}\n🎁 Refer Bonus: $${currentUser.referBonus.toFixed(2)}\n📊 Total bets: ${currentUser.totalPlayed || 0}\n🏆 Total won: $${(currentUser.totalWon || 0).toFixed(2)}`);
+    }
+    
+    function showDeposit() {
+        if (!currentUser) { alert("Login first"); return; }
+        let amt = parseFloat(prompt("Deposit amount (min $10):", "50"));
+        if (amt >= 10) { currentUser.balance += amt; saveCurrentUser(); updateUIForUser(); document.getElementById('statusMsg').innerHTML = `Deposited $${amt}`; }
+        else alert("Minimum $10");
+    }
+    
+    function showWithdraw() {
+        if (!currentUser) { alert("Login first"); return; }
+        let amt = parseFloat(prompt("Withdraw (min $100):", "100"));
+        if (amt < 100) alert("Minimum $100");
+        else if (amt <= currentUser.balance) { currentUser.balance -= amt; saveCurrentUser(); updateUIForUser(); document.getElementById('statusMsg').innerHTML = `Withdrew $${amt}`; }
+        else alert("Insufficient");
+    }
+    
+    function showManual() {
+        let modal = document.createElement('div'); modal.className = 'modal';
+        modal.innerHTML = `<div class="modal-card"><h2>📘 MANUAL</h2>
+        <div class="manual-step"><strong>🎮 BACKEND SYSTEM:</strong> Full user accounts, persistent balance, deposit/withdraw, referral system.</div>
+        <div class="manual-step"><strong>1.</strong> Register/Login (demo: demo/demo123)<br><strong>2.</strong> Deposit min $10<br><strong>3.</strong> Place BET ($10+) & JOIN ROUND<br><strong>4.</strong> CASH OUT before random CRASH<br><strong>5.</strong> Refer friends → $50 each (needs $1000 refer bonus to withdraw)</div>
+        <button id="closeManual" class="close-modal">Got it</button></div>`;
+        document.body.appendChild(modal);
+        document.getElementById('closeManual').onclick = () => modal.remove();
+    }
+    
+    function showReferral() {
+        if (!currentUser) { alert("Login first"); return; }
+        let code = currentUser.referralCode;
+        let modal = document.createElement('div'); modal.className = 'modal';
+        modal.innerHTML = `<div class="modal-card"><h3>🎁 REFER & EARN</h3><p>Your code: <strong>${code}</strong></p><p>Each referral: +$50 (need $1000 to withdraw refer bonus)</p><p>Current: $${currentUser.referBonus.toFixed(2)}</p><button id="simRef" class="chip">Simulate Referral</button><br><button id="closeRef" class="close-modal">Close</button></div>`;
+        document.body.appendChild(modal);
+        document.getElementById('simRef').onclick = () => { if(currentUser){ currentUser.referBonus += 50; saveCurrentUser(); updateUIForUser(); alert("+$50 Refer bonus!"); modal.remove(); } };
+        document.getElementById('closeRef').onclick = () => modal.remove();
+    }
+    
+    function playSound(type) {
+        if (!soundEnabled) return;
+        try {
+            const AudioCtx = window.AudioContext || window.webkitAudioContext;
+            const ctx = new AudioCtx();
+            const osc = ctx.createOscillator();
+            const gain = ctx.createGain();
+            osc.connect(gain);
+            gain.connect(ctx.destination);
+            osc.type = 'sine';
+            if (type === 'cashout') { osc.frequency.value = 880; gain.gain.value = 0.15; osc.start(); gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime+0.7); osc.stop(ctx.currentTime+0.6); }
+            else if (type === 'crash') { osc.frequency.value = 180; gain.gain.value = 0.2; osc.start(); gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime+0.9); osc.stop(ctx.currentTime+0.8); }
+            else if (type === 'bet') { osc.frequency.value = 660; gain.gain.value = 0.1; osc.start(); osc.stop(ctx.currentTime+0.2); }
+            setTimeout(() => ctx.close(), 1000);
+        } catch(e) {}
+    }
+    
+    // Event binding & init
+    window.onload = () => {
+        initBackend();
+        document.getElementById('weeklyLeaders').innerHTML = staticLeaderboards.weekly.map(w => `<div class="leaderboard-entry"><span>🏆 ${w.name}</span><span>${w.mult}</span></div>`).join('');
+        document.getElementById('monthlyLeaders').innerHTML = staticLeaderboards.monthly.map(m => `<div class="leaderboard-entry"><span>🌟 ${m.name}</span><span>${m.mult}</span></div>`).join('');
+        document.getElementById('dailyLeaders').innerHTML = staticLeaderboards.daily.map(d => `<div class="leaderboard-entry"><span>⚡ ${d.name}</span><span>${d.mult}</span></div>`).join('');
+        
+        document.getElementById('menuHyphen').onclick = () => document.getElementById('sidebar').classList.toggle('open');
+        document.getElementById('sidebarOverlay').onclick = () => document.getElementById('sidebar').classList.remove('open');
+        document.getElementById('darkLightToggle').onclick = () => { darkMode = !darkMode; document.body.classList.toggle('light-mode', !darkMode); };
+        document.getElementById('soundToggleSide').onclick = () => { soundEnabled = !soundEnabled; };
+        document.getElementById('animToggleSide').onclick = () => { animationsEnabled = !animationsEnabled; if(!animationsEnabled) document.getElementById('rocketIcon')?.classList.remove('flying'); };
+        
+        document.getElementById('authBtn').onclick = showAuthModal;
+        document.getElementById('profileBtn').onclick = showProfile;
+        document.getElementById('depositBtnSide').onclick = showDeposit;
+        document.getElementById('withdrawBtnSide').onclick = showWithdraw;
+        document.getElementById('manualBtnSide').onclick = showManual;
+        document.getElementById('referBtnSide').onclick = showReferral;
+        document.getElementById('logoutBtn').onclick = logout;
+        document.getElementById('placeBetBtn').onclick = placeBet;
+        document.getElementById('cashoutBtn').onclick = cashOut;
+        document.querySelectorAll('.chip').forEach(btn => btn.onclick = () => { let add = parseInt(btn.dataset.chip); let inp = document.getElementById('betAmount'); inp.value = Math.max(1, parseFloat(inp.value) + add); });
+        
+        startNewRound();
+    };
+</script>
+</body>
+</html>
