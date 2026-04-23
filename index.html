@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>NEBULA CRASH | Live Leaderboards & Sidebar</title>
+    <title>NEBULA CRASH | Turbo Speed & Static Leaderboards</title>
     <style>
         * {
             user-select: none;
@@ -20,7 +20,6 @@
             transition: filter 0.2s, background 0.2s;
         }
 
-        /* dark/light mode classes */
         body.light-mode {
             background: #f0f2f5;
             color: #1a1a2e;
@@ -35,7 +34,7 @@
             color: #ff8c42;
         }
         
-        /* sidebar (three hyphens) */
+        /* sidebar */
         .sidebar {
             position: fixed;
             top: 0;
@@ -67,6 +66,8 @@
             color: #ffd966;
             font-weight: bold;
             letter-spacing: 4px;
+            z-index: 101;
+            position: relative;
         }
         .sidebar-section {
             margin: 20px 0;
@@ -114,6 +115,21 @@
         }
         .toggle-switch.active:after { left: 23px; }
 
+        /* overlay when sidebar open */
+        .sidebar-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 150;
+            display: none;
+        }
+        .sidebar-overlay.active {
+            display: block;
+        }
+
         /* main layout */
         .menu-bar {
             background: rgba(0, 0, 0, 0.75);
@@ -144,6 +160,8 @@
             padding: 20px 24px 30px;
             box-shadow: 0 25px 40px black;
             border: 1px solid #f0a34b60;
+            position: relative;
+            z-index: 1;
         }
         #multiplierDisplay {
             font-size: 5rem;
@@ -209,6 +227,7 @@
             border-bottom: 1px solid #ffb34740;
             font-size: 0.85rem;
         }
+        .highlight-50 { color: #ffaa33; font-weight: bold; text-shadow: 0 0 4px orange; }
         .modal {
             position: fixed;
             top: 0; left: 0;
@@ -237,9 +256,12 @@
 </head>
 <body>
 
+<!-- overlay for closing sidebar -->
+<div id="sidebarOverlay" class="sidebar-overlay"></div>
+
 <div class="menu-bar">
     <div class="menu-hyphen" id="menuHyphen">☰</div>
-    <div class="logo">💥 NEBULA CRASH</div>
+    <div class="logo">⚡ NEBULA CRASH · TURBO</div>
     <div style="width:40px;"></div>
 </div>
 
@@ -251,8 +273,6 @@
         <div class="toggle-row"><span>🔊 Sound Effects</span><div id="soundToggleSide" class="toggle-switch active"></div></div>
         <div class="toggle-row"><span>🎵 Background Music</span><div id="musicToggleSide" class="toggle-switch"></div></div>
         <div class="toggle-row"><span>✨ Animations</span><div id="animToggleSide" class="toggle-switch active"></div></div>
-        <div class="toggle-row"><span>🚀 Turbo Mode</span><div id="turboToggleSide" class="toggle-switch"></div></div>
-        <div class="toggle-row"><span>🐢 Slow Mode</span><div id="slowToggleSide" class="toggle-switch"></div></div>
     </div>
     <div class="sidebar-section">
         <button class="sidebar-btn" id="profileBtn">👤 MY PROFILE</button>
@@ -262,20 +282,20 @@
         <button class="sidebar-btn" id="referBtnSide">🏆 REFER & EARN</button>
     </div>
     <div class="sidebar-section">
-        <h3>🏅 WEEKLY LEADERBOARD (Top 5)</h3>
+        <h3>🏅 WEEKLY LEADERBOARD</h3>
         <div id="weeklyLeaders"></div>
         <h3>📅 MONTHLY BEST</h3>
         <div id="monthlyLeaders"></div>
-        <h3>⚡ DAILY HIGH</h3>
+        <h3>⚡ DAILY HIGH (50x+ SPIKES)</h3>
         <div id="dailyLeaders"></div>
-        <p style="font-size:10px; color:#aaa;">*Fake players for excitement</p>
+        <p style="font-size:10px; color:#aaa;">*Static leaderboards · 50x+ occurs 3x daily</p>
     </div>
 </div>
 
 <div class="game-container">
     <div style="text-align:center">
         <div id="multiplierDisplay">1.00x</div>
-        <div id="statusMsg" style="font-size:0.85rem; background:#00000060; display:inline-block; padding:4px 16px; border-radius:60px;">⚡ WAITING FOR BET</div>
+        <div id="statusMsg" style="font-size:0.85rem; background:#00000060; display:inline-block; padding:4px 16px; border-radius:60px;">⚡ TURBO MODE ACTIVE</div>
     </div>
     <canvas id="crashCanvas" width="700" height="340" style="width:100%; aspect-ratio:700/340"></canvas>
 
@@ -296,7 +316,7 @@
     </div>
 
     <div class="history-area">
-        <div style="font-size:0.7rem;">📜 CRASH HISTORY</div>
+        <div style="font-size:0.7rem;">📜 CRASH HISTORY (recent)</div>
         <div class="history-list" id="historyList">—</div>
     </div>
 </div>
@@ -315,6 +335,7 @@
     const canvas = document.getElementById('crashCanvas');
     const ctx = canvas.getContext('2d');
     const sidebar = document.getElementById('sidebar');
+    const overlay = document.getElementById('sidebarOverlay');
     const menuHyphen = document.getElementById('menuHyphen');
 
     // Game state
@@ -330,33 +351,129 @@
     let crashHistory = [];
 
     // Settings
-    let turboMode = false;
-    let slowMode = false;
     let soundEnabled = true;
     let musicEnabled = false;
     let animationsEnabled = true;
     let darkMode = true;
     let musicInterval = null;
+    
+    // FIXED TURBO SPEED
+    const TURBO_SPEED = 2.1;
 
-    // Fake players data for leaderboards
-    const fakeNames = ["AstroMiner", "LunaWolf", "CryptoKing", "NebulaHunter", "RiskMaster", "VoltCrafter", "CashOrbit", "DeepDrill"];
-    function generateLeaderboards() {
-        const weekly = [];
-        const monthly = [];
-        const daily = [];
-        for (let i=0; i<5; i++) {
-            weekly.push({ name: fakeNames[Math.floor(Math.random()*fakeNames.length)]+i, mult: (Math.random() * 45 + 5).toFixed(1)+"x" });
-            monthly.push({ name: fakeNames[Math.floor(Math.random()*fakeNames.length)]+(i+10), mult: (Math.random() * 120 + 10).toFixed(1)+"x" });
-            daily.push({ name: fakeNames[Math.floor(Math.random()*fakeNames.length)]+"_"+i, mult: (Math.random() * 25 + 2).toFixed(1)+"x" });
-        }
-        document.getElementById('weeklyLeaders').innerHTML = weekly.map(w => `<div class="leaderboard-entry"><span>🏆 ${w.name}</span><span>${w.mult}</span></div>`).join('');
-        document.getElementById('monthlyLeaders').innerHTML = monthly.map(m => `<div class="leaderboard-entry"><span>🌟 ${m.name}</span><span>${m.mult}</span></div>`).join('');
-        document.getElementById('dailyLeaders').innerHTML = daily.map(d => `<div class="leaderboard-entry"><span>⚡ ${d.name}</span><span>${d.mult}</span></div>`).join('');
+    // Counter for 50x+ spikes today (ensures 3 times per day)
+    let fiftyXSpikesToday = 0;
+    let lastSpikeDate = new Date().toDateString();
+    
+    // ========== STATIC FAKE LEADERBOARDS (never change) ==========
+    const staticWeekly = [
+        { name: "🚀 ASTRO_CRUSHER", mult: "87.3x" },
+        { name: "💎 NEBULA_WHALE", mult: "64.8x" },
+        { name: "⚡ VOLT_RISK", mult: "52.1x" },
+        { name: "🔥 LUNA_WOLF", mult: "48.5x" },
+        { name: "⭐ DEEP_DRILL", mult: "41.2x" }
+    ];
+    const staticMonthly = [
+        { name: "🏆 CRYPTO_KING", mult: "215.7x" },
+        { name: "🌟 RISK_MASTER", mult: "189.3x" },
+        { name: "💀 NEBULA_HUNTER", mult: "156.2x" },
+        { name: "⚡ CASH_ORBIT", mult: "134.9x" },
+        { name: "🔥 SKY_ROCKET", mult: "112.5x" }
+    ];
+    const staticDaily = [
+        { name: "⚡ TODAY_SPIKE", mult: "73.4x", highlight: true },
+        { name: "💎 FAST_CASH", mult: "58.2x", highlight: false },
+        { name: "🚀 QUIT_WHILE_AHEAD", mult: "51.9x", highlight: true },
+        { name: "⭐ LUCKY_DRILL", mult: "44.7x", highlight: false },
+        { name: "🔥 EARLY_BIRD", mult: "38.3x", highlight: false }
+    ];
+    
+    function renderStaticLeaderboards() {
+        // Weekly
+        document.getElementById('weeklyLeaders').innerHTML = staticWeekly.map(w => 
+            `<div class="leaderboard-entry"><span>🏆 ${w.name}</span><span class="${parseFloat(w.mult)>=50?'highlight-50':''}">${w.mult}</span></div>`
+        ).join('');
+        // Monthly
+        document.getElementById('monthlyLeaders').innerHTML = staticMonthly.map(m => 
+            `<div class="leaderboard-entry"><span>🌟 ${m.name}</span><span class="${parseFloat(m.mult)>=50?'highlight-50':''}">${m.mult}</span></div>`
+        ).join('');
+        // Daily
+        document.getElementById('dailyLeaders').innerHTML = staticDaily.map(d => 
+            `<div class="leaderboard-entry"><span>⚡ ${d.name}</span><span class="${d.highlight || parseFloat(d.mult)>=50?'highlight-50':''}">${d.mult}</span></div>`
+        ).join('');
     }
-    generateLeaderboards();
-    setInterval(generateLeaderboards, 30000); // refresh fake players
-
-    // Helper sounds
+    
+    // Highly unpredictable crash generator that can reach 50x+ three times a day
+    function generateUnpredictableCrash() {
+        const today = new Date().toDateString();
+        if (lastSpikeDate !== today) {
+            fiftyXSpikesToday = 0;
+            lastSpikeDate = today;
+        }
+        
+        let r = Math.random();
+        let crash;
+        
+        let forceHighSpike = false;
+        if (fiftyXSpikesToday < 3 && Math.random() < 0.12) {
+            forceHighSpike = true;
+        }
+        
+        if (forceHighSpike) {
+            crash = 50 + Math.random() * 200;
+            fiftyXSpikesToday++;
+        } else {
+            if (r < 0.55) {
+                crash = 1.00 + Math.random() * 1.2;
+            } else if (r < 0.8) {
+                crash = 2.2 + Math.random() * 3.8;
+            } else if (r < 0.94) {
+                crash = 6 + Math.random() * 19;
+            } else {
+                crash = 25 + Math.random() * 55;
+                if (crash >= 50 && fiftyXSpikesToday < 3) {
+                    fiftyXSpikesToday++;
+                }
+            }
+        }
+        crash = Math.min(350, Math.max(1.01, crash));
+        return parseFloat(crash.toFixed(2));
+    }
+    
+    function drawCurve() {
+        if (!ctx) return;
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        ctx.fillStyle = '#010106';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        let maxMult = (isGameActive && currentMultiplier) ? Math.max(currentMultiplier, crashPoint) : (crashPoint || 2);
+        if (maxMult < 1.2) maxMult = 3;
+        ctx.beginPath();
+        for (let x=0; x<=canvas.width; x+=5) {
+            let t = x/canvas.width;
+            let mult = 1 + (maxMult-1) * (1 - Math.pow(1-t, 1.65));
+            let y = canvas.height - (mult/maxMult)*canvas.height;
+            if(x===0) ctx.moveTo(x,y); else ctx.lineTo(x,y);
+        }
+        ctx.strokeStyle = '#f0a34b';
+        ctx.lineWidth = 3;
+        ctx.stroke();
+        if (isGameActive && currentMultiplier>1 && animationsEnabled) {
+            let tPos = Math.min(0.99, (currentMultiplier-1)/(maxMult-1));
+            let dotX = canvas.width * tPos;
+            let multY = 1 + (maxMult-1) * (1 - Math.pow(1-tPos, 1.65));
+            let dotY = canvas.height - (multY/maxMult)*canvas.height;
+            ctx.fillStyle = '#ffcc55';
+            ctx.beginPath(); ctx.arc(dotX, dotY, 8, 0, Math.PI*2); ctx.fill();
+        }
+    }
+    
+    function updateUI() {
+        walletSpan.innerText = balance.toFixed(2);
+        referBonusSpan.innerText = referBonus.toFixed(2);
+        if (isGameActive && currentBet>0 && !hasCashed) potentialSpan.innerText = (currentBet*currentMultiplier).toFixed(2);
+        else potentialSpan.innerText = "0.00";
+        cashoutBtn.disabled = !(isGameActive && currentBet>0 && !hasCashed && currentMultiplier>1.02);
+    }
+    
     function playSound(type) {
         if (!soundEnabled) return;
         try {
@@ -370,9 +487,11 @@
             if (type === 'cashout') { osc.frequency.value = 880; gain.gain.value = 0.15; osc.start(); gain.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime+0.7); osc.stop(audioCtx.currentTime+0.6); }
             else if (type === 'crash') { osc.frequency.value = 180; gain.gain.value = 0.2; osc.start(); gain.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime+0.9); osc.stop(audioCtx.currentTime+0.8); }
             else if (type === 'bet') { osc.frequency.value = 660; gain.gain.value = 0.1; osc.start(); osc.stop(audioCtx.currentTime+0.2); }
+            else if (type === 'spike') { osc.frequency.value = 1200; gain.gain.value = 0.25; osc.start(); gain.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime+1.2); osc.stop(audioCtx.currentTime+1); }
             setTimeout(() => audioCtx.close(), 1000);
         } catch(e) {}
     }
+    
     function toggleMusic() {
         if (musicEnabled) {
             if (musicInterval) clearInterval(musicInterval);
@@ -399,102 +518,71 @@
             musicInterval = null;
         }
     }
-
-    // Crash logic
-    function generateUnpredictableCrash() {
-        let r = Math.random();
-        if (r < 0.6) return parseFloat((1 + Math.random() * 0.95).toFixed(2));
-        else if (r < 0.85) return parseFloat((2 + Math.random() * 2.5).toFixed(2));
-        else if (r < 0.97) return parseFloat((5 + Math.random() * 13).toFixed(2));
-        else return parseFloat((18 + Math.random() * 80).toFixed(2));
-    }
-    function getSpeedFactor() { if (turboMode) return 1.7; if (slowMode) return 0.55; return 1.0; }
-    function drawCurve() {
-        if (!ctx) return;
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-        ctx.fillStyle = '#010106';
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
-        let maxMult = (isGameActive && currentMultiplier) ? Math.max(currentMultiplier, crashPoint) : (crashPoint || 2);
-        if (maxMult < 1.2) maxMult = 3;
-        ctx.beginPath();
-        for (let x=0; x<=canvas.width; x+=5) {
-            let t = x/canvas.width;
-            let mult = 1 + (maxMult-1) * (1 - Math.pow(1-t, 1.75));
-            let y = canvas.height - (mult/maxMult)*canvas.height;
-            if(x===0) ctx.moveTo(x,y); else ctx.lineTo(x,y);
-        }
-        ctx.strokeStyle = '#f0a34b';
-        ctx.lineWidth = 3;
-        ctx.stroke();
-        if (isGameActive && currentMultiplier>1 && animationsEnabled) {
-            let tPos = Math.min(0.99, (currentMultiplier-1)/(maxMult-1));
-            let dotX = canvas.width * tPos;
-            let multY = 1 + (maxMult-1) * (1 - Math.pow(1-tPos, 1.75));
-            let dotY = canvas.height - (multY/maxMult)*canvas.height;
-            ctx.fillStyle = '#ffcc55';
-            ctx.beginPath(); ctx.arc(dotX, dotY, 8, 0, Math.PI*2); ctx.fill();
-        }
-    }
-    function updateUI() {
-        walletSpan.innerText = balance.toFixed(2);
-        referBonusSpan.innerText = referBonus.toFixed(2);
-        if (isGameActive && currentBet>0 && !hasCashed) potentialSpan.innerText = (currentBet*currentMultiplier).toFixed(2);
-        else potentialSpan.innerText = "0.00";
-        cashoutBtn.disabled = !(isGameActive && currentBet>0 && !hasCashed && currentMultiplier>1.02);
-    }
+    
     function crashEvent() {
         if (!isGameActive) return;
         if (animationId) cancelAnimationFrame(animationId);
         isGameActive = false;
-        if (currentBet>0 && !hasCashed) { playSound('crash'); statusSpan.innerText = `💥 CRASHED at ${crashPoint.toFixed(2)}x · Lost $${currentBet.toFixed(2)}`; currentBet=0; }
+        if (currentBet>0 && !hasCashed) { 
+            playSound('crash'); 
+            statusSpan.innerText = `💥 CRASHED at ${crashPoint.toFixed(2)}x · Lost $${currentBet.toFixed(2)}`;
+            currentBet=0; 
+        }
         else if (hasCashed) statusSpan.innerText = `✅ Cashed out at ${currentMultiplier.toFixed(2)}x!`;
         else statusSpan.innerText = `💀 CRASH ${crashPoint.toFixed(2)}x`;
+        
+        if (crashPoint >= 50) playSound('spike');
+        
         crashHistory.unshift(crashPoint.toFixed(2)+'x');
         if(crashHistory.length>12) crashHistory.pop();
-        historyDiv.innerHTML = crashHistory.map(h=>`<span style="background:#1e1a3a; padding:4px 14px; border-radius:30px;">${h}</span>`).join('');
+        historyDiv.innerHTML = crashHistory.map(h=>`<span style="background:#1e1a3a; padding:4px 14px; border-radius:30px; ${parseFloat(h)>=50?'color:#ffaa33; font-weight:bold;':''}">${h}</span>`).join('');
         currentBet=0; hasCashed=false; currentMultiplier=1;
         multiplierDisplay.innerText="1.00x";
         updateUI(); drawCurve();
-        setTimeout(()=>{ if(!isGameActive) statusSpan.innerText = "✨ Place bet to start new round"; },1200);
+        setTimeout(()=>{ if(!isGameActive) statusSpan.innerText = "⚡ TURBO MODE · Place bet to start"; },1200);
     }
+    
     function startRound() {
         if (isGameActive) return;
         if (currentBet<=0) { statusSpan.innerText = "Place a bet first!"; return; }
         crashPoint = generateUnpredictableCrash();
         currentMultiplier=1; multiplierDisplay.innerText="1.00x";
         isGameActive=true; hasCashed=false; roundStart=performance.now();
-        statusSpan.innerText = "🚀 FLYING! Cashout before crash!";
+        statusSpan.innerText = `🚀 TURBO FLYING! Cashout before ${crashPoint.toFixed(2)}x`;
         updateUI(); drawCurve();
         if(animationId) cancelAnimationFrame(animationId);
+        
         function animate(now) {
             if(!isGameActive) return;
             let elapsed = (now-roundStart)/1000;
-            let timeRatio = elapsed * getSpeedFactor();
-            let maxDur=11;
-            let t=Math.min(1, timeRatio/maxDur);
-            let mult = 1 + (crashPoint-1)*Math.pow(t,1.45);
-            if(mult>=crashPoint || timeRatio>=maxDur) {
-                currentMultiplier=crashPoint;
-                multiplierDisplay.innerText=crashPoint.toFixed(2)+"x";
+            let timeRatio = elapsed * TURBO_SPEED;
+            let maxDur = 10;
+            let t = Math.min(1, timeRatio / maxDur);
+            let mult = 1 + (crashPoint - 1) * Math.pow(t, 1.35);
+            if(mult >= crashPoint || timeRatio >= maxDur) {
+                currentMultiplier = crashPoint;
+                multiplierDisplay.innerText = crashPoint.toFixed(2)+"x";
                 crashEvent();
                 return;
             }
-            currentMultiplier=parseFloat(mult.toFixed(4));
-            multiplierDisplay.innerText=currentMultiplier.toFixed(2)+"x";
+            currentMultiplier = parseFloat(mult.toFixed(4));
+            multiplierDisplay.innerText = currentMultiplier.toFixed(2)+"x";
             if(currentBet>0 && !hasCashed) updateUI();
             if(animationsEnabled) drawCurve();
             animationId = requestAnimationFrame(animate);
         }
         animationId = requestAnimationFrame(animate);
     }
+    
     function placeBet() {
-        if(isGameActive){ statusSpan.innerText="Round active!"; return; }
+        if(isGameActive){ statusSpan.innerText="Round active! Wait for crash."; return; }
         let amount=parseFloat(betInput.value);
         if(isNaN(amount)||amount<10){ statusSpan.innerText="Min bet $10"; return; }
         if(amount>balance){ statusSpan.innerText="Insufficient balance!"; return; }
         balance-=amount; currentBet=amount;
         playSound('bet'); updateUI(); startRound();
     }
+    
     function cashOut() {
         if(!isGameActive || currentBet<=0 || hasCashed) return;
         if(currentMultiplier<1.02){ statusSpan.innerText="Multiplier too low!"; return; }
@@ -503,7 +591,7 @@
         hasCashed=true; statusSpan.innerText=`💰 CASHED $${win.toFixed(2)} at ${currentMultiplier.toFixed(2)}x!`;
         currentBet=0; updateUI(); drawCurve(); cashoutBtn.disabled=true;
     }
-
+    
     // Banking & Profile
     function showDeposit() {
         let amt = parseFloat(prompt("💰 Deposit amount (min $10):", "50"));
@@ -517,12 +605,13 @@
         else alert("Insufficient wallet balance");
     }
     function showProfile() {
-        alert(`👤 USER: NEBULA_TRADER\n💰 Wallet: $${balance.toFixed(2)}\n🎁 Refer Bonus: $${referBonus.toFixed(2)} (need $1000 to withdraw)\n📊 Total bets placed: ${crashHistory.length}`);
+        alert(`👤 USER: NEBULA_TRADER\n💰 Wallet: $${balance.toFixed(2)}\n🎁 Refer Bonus: $${referBonus.toFixed(2)} (need $1000 to withdraw)\n📊 Total rounds: ${crashHistory.length}\n🔥 Today's 50x+ spikes: ${fiftyXSpikesToday}/3`);
     }
     function showManual() {
         let modal=document.createElement('div'); modal.className='modal';
-        modal.innerHTML=`<div class="modal-card"><h2>📘 CRASH MANUAL</h2>
-        <div class="manual-step"><strong>1.</strong> Deposit min $10 (Wallet).<br><strong>2.</strong> Enter BET (min $10) & click PLACE BET.<br><strong>3.</strong> Multiplier rises. Click CASH OUT before CRASH to win BET x MULTIPLIER.<br><strong>4.</strong> If CRASH hits before cashout → you LOSE the bet.<br><strong>5.</strong> Refer friends → $50 each (needs $1000 refer bonus to withdraw).<br><strong>6.</strong> Withdraw min $100 from wallet.<br><strong>7.</strong> Use ☰ menu for Dark/Light, Turbo/Slow, Music & Animations.<br><strong>8.</strong> Leaderboards show fake top players for fun.<br><strong>9.</strong> CRASH is highly volatile (60% below 2x).</div>
+        modal.innerHTML=`<div class="modal-card"><h2>📘 CRASH MANUAL (TURBO)</h2>
+        <div class="manual-step"><strong>⚡ TURBO SPEED:</strong> Multiplier rises 2.1x faster! High risk, high reward.</div>
+        <div class="manual-step"><strong>1.</strong> Deposit min $10 (Wallet).<br><strong>2.</strong> Enter BET (min $10) & click PLACE BET.<br><strong>3.</strong> Multiplier rises quickly. Click CASH OUT before CRASH → WIN = BET x MULTIPLIER.<br><strong>4.</strong> If CRASH hits before cashout → you LOSE the bet.<br><strong>5.</strong> <span class="highlight-50">50x+ SPIKES happen 3 times per day!</span> Extremely unpredictable.<br><strong>6.</strong> Refer friends → $50 each (needs $1000 refer bonus to withdraw).<br><strong>7.</strong> Withdraw min $100 from wallet.<br><strong>8.</strong> Open ☰ menu for Dark/Light, Sound, Music & Animations.<br><strong>9.</strong> Click outside menu or press ESC to close sidebar.</div>
         <button id="closeManualBtn" class="close-modal">Got it</button></div>`;
         document.body.appendChild(modal);
         document.getElementById('closeManualBtn')?.addEventListener('click',()=>modal.remove());
@@ -535,15 +624,37 @@
         document.getElementById('simulateRefer')?.addEventListener('click',()=>{ referBonus+=50; referBonusSpan.innerText=referBonus.toFixed(2); statusSpan.innerText="+$50 Refer bonus!"; modal.remove(); });
         document.getElementById('closeRef')?.addEventListener('click',()=>modal.remove());
     }
-
+    
+    // ========== SIDEBAR CLOSE FUNCTIONS ==========
+    function closeSidebar() {
+        sidebar.classList.remove('open');
+        overlay.classList.remove('active');
+    }
+    function openSidebar() {
+        sidebar.classList.add('open');
+        overlay.classList.add('active');
+    }
+    // Click on overlay closes sidebar
+    overlay.addEventListener('click', closeSidebar);
+    // Click on menu hyphen toggles
+    menuHyphen.addEventListener('click', (e) => {
+        e.stopPropagation();
+        if (sidebar.classList.contains('open')) closeSidebar();
+        else openSidebar();
+    });
+    // Close sidebar on Escape key
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && sidebar.classList.contains('open')) closeSidebar();
+    });
+    // Prevent clicks inside sidebar from closing it
+    sidebar.addEventListener('click', (e) => e.stopPropagation());
+    
     // Sidebar toggles
     function updateSidebarToggles() {
         document.querySelectorAll('.toggle-switch').forEach(t => t.classList.remove('active'));
         if(soundEnabled) document.getElementById('soundToggleSide')?.classList.add('active');
         if(musicEnabled) document.getElementById('musicToggleSide')?.classList.add('active');
         if(animationsEnabled) document.getElementById('animToggleSide')?.classList.add('active');
-        if(turboMode) document.getElementById('turboToggleSide')?.classList.add('active');
-        if(slowMode) document.getElementById('slowToggleSide')?.classList.add('active');
         if(!darkMode) document.getElementById('darkLightToggle')?.classList.add('active');
         else if(darkMode && document.getElementById('darkLightToggle')) document.getElementById('darkLightToggle').classList.remove('active');
     }
@@ -555,25 +666,25 @@
     document.getElementById('soundToggleSide')?.addEventListener('click',()=>{ soundEnabled=!soundEnabled; updateSidebarToggles(); });
     document.getElementById('musicToggleSide')?.addEventListener('click',()=>{ musicEnabled=!musicEnabled; toggleMusic(); updateSidebarToggles(); });
     document.getElementById('animToggleSide')?.addEventListener('click',()=>{ animationsEnabled=!animationsEnabled; if(!animationsEnabled && animationId) cancelAnimationFrame(animationId); if(isGameActive && animationsEnabled) startRound(); drawCurve(); updateSidebarToggles(); });
-    document.getElementById('turboToggleSide')?.addEventListener('click',()=>{ turboMode=!turboMode; if(turboMode) slowMode=false; updateSidebarToggles(); if(isGameActive){ crashEvent(); setTimeout(()=>{ if(currentBet===0) placeBet(); },500); } });
-    document.getElementById('slowToggleSide')?.addEventListener('click',()=>{ slowMode=!slowMode; if(slowMode) turboMode=false; updateSidebarToggles(); if(isGameActive){ crashEvent(); setTimeout(()=>{ if(currentBet===0) placeBet(); },500); } });
     
     document.getElementById('profileBtn')?.addEventListener('click',showProfile);
     document.getElementById('depositBtnSide')?.addEventListener('click',showDeposit);
     document.getElementById('withdrawBtnSide')?.addEventListener('click',showWithdraw);
     document.getElementById('manualBtnSide')?.addEventListener('click',showManual);
     document.getElementById('referBtnSide')?.addEventListener('click',showReferral);
-    menuHyphen.addEventListener('click',()=>sidebar.classList.toggle('open'));
+    
     document.querySelectorAll('.chip').forEach(btn=>btn.addEventListener('click',(e)=>{ let add=parseInt(btn.dataset.chip); let newVal=parseFloat(betInput.value)+add; if(newVal>balance && !isGameActive) newVal=balance; betInput.value=Math.max(1,newVal.toFixed(2)); }));
     placeBtn.addEventListener('click',placeBet);
     cashoutBtn.addEventListener('click',cashOut);
+    
     function resizeCanvas(){ canvas.width=Math.min(700, canvas.parentElement.clientWidth-20); canvas.height=canvas.width*0.485; drawCurve(); }
     window.addEventListener('resize',resizeCanvas);
     resizeCanvas();
     updateUI();
     applyDarkLight();
     updateSidebarToggles();
-    statusSpan.innerText="📖 Open ☰ menu for MANUAL & settings";
+    renderStaticLeaderboards();  // static leaderboards, never change
+    statusSpan.innerText="⚡ TURBO SPEED · 50x+ spikes 3x daily!";
 </script>
 </body>
-    </html>
+</html>
