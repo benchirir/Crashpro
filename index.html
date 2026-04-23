@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>AERO CRASH | Unpredictable Multiplier Game</title>
+    <title>AERO CRASH | Like Aviator & JetX · Turbo Multiplier</title>
     <style>
         * {
             user-select: none;
@@ -135,7 +135,7 @@
             z-index: 1;
         }
         
-        /* Big multiplier display - the core visual */
+        /* Big multiplier display - like Aviator/JetX */
         .multiplier-wrapper {
             text-align: center;
             margin: 20px 0;
@@ -144,33 +144,34 @@
             border-radius: 60px;
         }
         #multiplierDisplay {
-            font-size: 6rem;
+            font-size: 6.5rem;
             font-weight: 900;
             background: linear-gradient(135deg, #FFE6B0, #FFB347);
             -webkit-background-clip: text;
             background-clip: text;
             color: transparent;
-            font-family: monospace;
-            letter-spacing: 6px;
-            text-shadow: 0 0 30px rgba(255, 160, 0, 0.5);
-            transition: all 0.05s ease;
+            font-family: 'Monaco', 'Courier New', monospace;
+            letter-spacing: 8px;
+            text-shadow: 0 0 40px rgba(255, 160, 0, 0.6);
+            transition: all 0.03s linear;
         }
         
-        /* Simple animated bar instead of broken canvas */
-        .progress-bar-container {
+        /* Smooth progress bar similar to flight path */
+        .flight-path {
             background: #1a1a2e;
             border-radius: 40px;
-            height: 12px;
+            height: 8px;
             margin: 20px 0;
             overflow: hidden;
             box-shadow: inset 0 1px 4px rgba(0,0,0,0.5);
         }
-        .progress-fill {
+        .flight-fill {
             width: 0%;
             height: 100%;
-            background: linear-gradient(90deg, #f0a34b, #ffcc55);
+            background: linear-gradient(90deg, #f0a34b, #ffcc55, #ffaa33);
             border-radius: 40px;
-            transition: width 0.08s linear;
+            transition: width 0.04s linear;
+            box-shadow: 0 0 8px #ffaa55;
         }
         
         .info-panel {
@@ -184,7 +185,7 @@
         }
         .wallet-card { flex: 1; text-align: center; }
         .label { font-size: 0.7rem; color: #aa99ff; letter-spacing: 1px; }
-        .value { font-size: 1.6rem; font-weight: bold; color: #FFE5A3; }
+        .value { font-size: 1.6rem; font-weight: bold; color: #FFE5A3; font-family: monospace; }
         .bet-panel {
             background: #0b0722;
             border-radius: 60px;
@@ -195,23 +196,40 @@
             align-items: center;
             justify-content: space-between;
         }
-        .bet-input input {
+        .bet-input {
             background: #01000c;
+            padding: 6px 18px;
+            border-radius: 50px;
+        }
+        .bet-input input {
+            background: transparent;
             border: none;
             font-size: 1.3rem;
             width: 100px;
             color: gold;
             font-weight: bold;
-            padding: 6px 12px;
-            border-radius: 40px;
+            outline: none;
+            font-family: monospace;
         }
-        .chip { background: #2a2350; border: none; padding: 8px 14px; border-radius: 40px; color: white; cursor: pointer; margin: 0 4px; }
+        .chip { background: #2a2350; border: none; padding: 8px 16px; border-radius: 40px; color: white; cursor: pointer; margin: 0 4px; font-weight: bold; transition: 0.05s linear; }
+        .chip:active { transform: scale(0.95); background: #4a3d80; }
         .action-buttons { display: flex; gap: 16px; margin: 18px 0; }
-        .btn { flex: 1; padding: 14px; font-weight: bold; border: none; border-radius: 60px; font-size: 1.1rem; cursor: pointer; transition: 0.05s linear; }
-        .btn-bet { background: #2b7a3e; color: white; box-shadow: 0 4px 0 #124d23; }
-        .btn-cashout { background: #e07c1f; color: #1e1a0a; box-shadow: 0 4px 0 #8a4f0e; }
-        .btn:active { transform: translateY(2px); }
-        .btn:disabled { opacity: 0.4; transform: none; cursor: not-allowed; }
+        .btn {
+            flex: 1;
+            padding: 14px;
+            font-weight: bold;
+            border: none;
+            border-radius: 60px;
+            font-size: 1.2rem;
+            cursor: pointer;
+            transition: 0.05s linear;
+            font-family: monospace;
+            letter-spacing: 1px;
+        }
+        .btn-bet { background: linear-gradient(95deg, #2b7a3e, #1e5a2e); color: white; box-shadow: 0 5px 0 #0a3a1a; }
+        .btn-cashout { background: linear-gradient(95deg, #e07c1f, #c06810); color: #1e1a0a; box-shadow: 0 5px 0 #8a4f0e; font-weight: 800; }
+        .btn:active { transform: translateY(2px); box-shadow: 0 2px 0 #00000066; }
+        .btn:disabled { opacity: 0.45; transform: none; cursor: not-allowed; }
         .history-area { margin-top: 20px; background: #02000c80; border-radius: 40px; padding: 12px; }
         .history-list { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 6px; }
         .leaderboard-entry { display: flex; justify-content: space-between; padding: 6px 0; border-bottom: 1px solid #ffb34740; font-size: 0.85rem; }
@@ -240,14 +258,13 @@
         }
         .manual-step { background: #0f0c21; margin: 12px 0; padding: 12px; border-radius: 28px; text-align: left; }
         .close-modal { background: #7a5a2a; margin-top: 16px; padding: 8px 20px; border: none; border-radius: 40px; color: white; cursor: pointer; }
-        .warning-badge { background: #ff4444aa; padding: 4px 12px; border-radius: 60px; font-size: 0.7rem; display: inline-block; margin-left: 8px; }
-        .rocket-icon { font-size: 2rem; display: inline-block; animation: none; margin-right: 8px; }
-        @keyframes subtleShake {
-            0%, 100% { transform: translateX(0); }
-            50% { transform: translateX(2px); }
+        .rocket-icon { font-size: 2rem; display: inline-block; margin-right: 8px; filter: drop-shadow(0 0 6px orange); }
+        @keyframes flyPulse {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-3px); }
         }
         .flying {
-            animation: subtleShake 0.15s ease infinite;
+            animation: flyPulse 0.2s ease infinite;
         }
     </style>
 </head>
@@ -257,7 +274,7 @@
 
 <div class="menu-bar">
     <div class="menu-hyphen" id="menuHyphen">☰</div>
-    <div class="logo">✈️ AERO CRASH · UNPREDICTABLE</div>
+    <div class="logo">✈️ AERO CRASH · LIKE AVIATOR/JETX</div>
     <div style="width:40px;"></div>
 </div>
 
@@ -283,7 +300,7 @@
         <div id="monthlyLeaders"></div>
         <h3>⚡ DAILY HIGH (50x+ SPIKES)</h3>
         <div id="dailyLeaders"></div>
-        <p style="font-size:10px; color:#aaa;">*Static leaderboards · True random crash</p>
+        <p style="font-size:10px; color:#aaa;">*Static leaderboards · Turbo speed · 50x+ spikes</p>
     </div>
 </div>
 
@@ -291,11 +308,11 @@
     <div class="multiplier-wrapper">
         <span class="rocket-icon" id="rocketIcon">✈️</span>
         <div id="multiplierDisplay">1.00x</div>
-        <div id="statusMsg" style="font-size:0.85rem; margin-top: 12px; color:#ffbf69;">⚡ PLACE BET TO START</div>
+        <div id="statusMsg" style="font-size:0.85rem; margin-top: 12px; background:#00000080; display:inline-block; padding:6px 20px; border-radius:60px;">⚡ READY · PLACE BET</div>
     </div>
     
-    <div class="progress-bar-container">
-        <div class="progress-fill" id="progressFill"></div>
+    <div class="flight-path">
+        <div class="flight-fill" id="flightFill"></div>
     </div>
 
     <div class="info-panel">
@@ -315,7 +332,7 @@
     </div>
 
     <div class="history-area">
-        <div style="font-size:0.7rem;">📜 CRASH HISTORY (recent)</div>
+        <div style="font-size:0.7rem; letter-spacing:2px;">📜 CRASH HISTORY</div>
         <div class="history-list" id="historyList">—</div>
     </div>
 </div>
@@ -331,7 +348,7 @@
     const placeBtn = document.getElementById('placeBetBtn');
     const cashoutBtn = document.getElementById('cashoutBtn');
     const historyDiv = document.getElementById('historyList');
-    const progressFill = document.getElementById('progressFill');
+    const flightFill = document.getElementById('flightFill');
     const rocketIcon = document.getElementById('rocketIcon');
     const sidebar = document.getElementById('sidebar');
     const overlay = document.getElementById('sidebarOverlay');
@@ -344,14 +361,13 @@
     let isGameActive = false;
     let hasCashed = false;
     let currentMultiplier = 1.00;
-    let crashMultiplier = 1.00;
+    let crashPoint = 1.00;
     let crashHistory = [];
     
-    // Timing variables for unpredictable crash
+    // Timing
     let roundInterval = null;
     let startTime = 0;
     let crashDelayMs = 0;
-    let animationInterval = null;
     
     // Settings
     let soundEnabled = true;
@@ -360,7 +376,10 @@
     let darkMode = true;
     let musicInterval = null;
     
-    // Static leaderboards (original names)
+    // Fixed TURBO speed like Aviator/JetX (fast smooth rise)
+    const TURBO_SPEED_FACTOR = 2.2;
+    
+    // Static leaderboards
     const staticWeekly = [
         { name: "🚀 ASTRO_CRUSHER", mult: "87.3x" },
         { name: "💎 NEBULA_WHALE", mult: "64.8x" },
@@ -395,52 +414,50 @@
         ).join('');
     }
     
-    // ========== TRULY UNPREDICTABLE CRASH ==========
-    function generateRandomCrashMultiplier() {
+    // Generate unpredictable crash (high variance, can reach 50x+ multiple times daily)
+    function generateCrashMultiplier() {
         let r = Math.random();
-        if (r < 0.55) return 1.0 + Math.random() * 1.2;
-        else if (r < 0.78) return 2.2 + Math.random() * 2.8;
-        else if (r < 0.92) return 5 + Math.random() * 10;
-        else if (r < 0.98) return 15 + Math.random() * 35;
-        else return 50 + Math.random() * 100;
+        if (r < 0.55) return 1.0 + Math.random() * 1.2;      // 1.0x - 2.2x (frequent losses)
+        else if (r < 0.78) return 2.2 + Math.random() * 2.8;  // 2.2x - 5.0x
+        else if (r < 0.92) return 5 + Math.random() * 12;     // 5x - 17x
+        else if (r < 0.97) return 17 + Math.random() * 33;    // 17x - 50x
+        else return 50 + Math.random() * 100;                  // 50x - 150x (jackpot)
     }
     
-    function generateRandomCrashDelay() {
-        // Random delay between 1 second and 18 seconds - extremely unpredictable
+    function generateCrashDelay() {
+        // Random duration between 1.2s and 16s - keeps players guessing
         let r = Math.random();
-        if (r < 0.3) return 1000 + Math.random() * 2000;      // 1-3 sec (early)
-        else if (r < 0.6) return 3000 + Math.random() * 4000; // 3-7 sec (mid)
-        else if (r < 0.85) return 7000 + Math.random() * 6000; // 7-13 sec (late)
-        else return 13000 + Math.random() * 7000;              // 13-20 sec (hover)
+        if (r < 0.35) return 1200 + Math.random() * 2000;     // 1.2-3.2s early
+        else if (r < 0.65) return 3200 + Math.random() * 4000; // 3.2-7.2s mid
+        else if (r < 0.88) return 7200 + Math.random() * 5000; // 7.2-12.2s late
+        else return 12200 + Math.random() * 6000;               // 12-18s hover
     }
     
-    function updateMultiplierAndUI() {
+    function updateMultiplier() {
         if (!isGameActive) return;
         
         let elapsed = Date.now() - startTime;
         if (elapsed >= crashDelayMs) {
-            // CRASH!
-            currentMultiplier = crashMultiplier;
+            currentMultiplier = crashPoint;
             multiplierDisplay.innerText = currentMultiplier.toFixed(2) + "x";
-            if (progressFill) progressFill.style.width = "100%";
+            if (flightFill) flightFill.style.width = "100%";
             crashEvent();
             return;
         }
         
-        // Calculate current multiplier based on progress (non-linear, unpredictable path)
         let progress = elapsed / crashDelayMs;
-        // Random curve power between 0.8 and 2.2 for each round - makes path unpredictable
-        let curvePower = 0.9 + Math.random() * 1.3;
-        let mult = 1 + (crashMultiplier - 1) * Math.pow(progress, curvePower);
-        // Add turbulence
-        let turbulence = Math.sin(elapsed / 300) * 0.03 * mult;
-        mult = Math.max(1.01, Math.min(crashMultiplier, mult + turbulence));
+        // Smooth exponential ease-out curve like Aviator/JetX
+        let curvePower = 1.35;
+        let mult = 1 + (crashPoint - 1) * Math.pow(progress, curvePower);
+        // Add micro-turbulence for realism
+        let turbulence = Math.sin(elapsed / 250) * 0.02 * mult;
+        mult = Math.max(1.01, Math.min(crashPoint, mult + turbulence));
         currentMultiplier = parseFloat(mult.toFixed(4));
         
         multiplierDisplay.innerText = currentMultiplier.toFixed(2) + "x";
-        if (progressFill) {
-            let fillPercent = Math.min(100, (elapsed / crashDelayMs) * 100);
-            progressFill.style.width = fillPercent + "%";
+        if (flightFill) {
+            let percent = Math.min(100, (elapsed / crashDelayMs) * 100);
+            flightFill.style.width = percent + "%";
         }
         
         if (currentBet > 0 && !hasCashed) {
@@ -453,31 +470,27 @@
     function startRound() {
         if (isGameActive) return;
         if (currentBet <= 0) {
-            statusSpan.innerText = "Place a bet first!";
+            statusSpan.innerHTML = "⚠️ Place a bet first!";
             return;
         }
         
-        // Generate random crash multiplier and random delay
-        crashMultiplier = generateRandomCrashMultiplier();
-        crashDelayMs = generateRandomCrashDelay();
+        crashPoint = generateCrashMultiplier();
+        crashDelayMs = generateCrashDelay();
         
         currentMultiplier = 1.00;
         multiplierDisplay.innerText = "1.00x";
-        if (progressFill) progressFill.style.width = "0%";
+        if (flightFill) flightFill.style.width = "0%";
         isGameActive = true;
         hasCashed = false;
         startTime = Date.now();
         
-        statusSpan.innerHTML = `✈️ FLYING · CRASH at ${crashMultiplier.toFixed(2)}x max · UNPREDICTABLE!`;
-        if (animationsEnabled && rocketIcon) {
-            rocketIcon.style.animation = "subtleShake 0.15s ease infinite";
-        }
+        statusSpan.innerHTML = `✈️ FLYING · Crash up to ${crashPoint.toFixed(2)}x · CASHOUT ANYTIME!`;
+        if (animationsEnabled && rocketIcon) rocketIcon.classList.add('flying');
+        
         updateUI();
         
         if (roundInterval) clearInterval(roundInterval);
-        roundInterval = setInterval(() => {
-            updateMultiplierAndUI();
-        }, 50);
+        roundInterval = setInterval(() => updateMultiplier(), 30);
     }
     
     function crashEvent() {
@@ -491,12 +504,12 @@
             statusSpan.innerHTML = `💥 CRASHED at ${currentMultiplier.toFixed(2)}x · Lost $${currentBet.toFixed(2)}`;
             currentBet = 0;
         } else if (hasCashed) {
-            statusSpan.innerHTML = `✅ Cashed out at ${currentMultiplier.toFixed(2)}x!`;
+            statusSpan.innerHTML = `✅ CASHED OUT at ${currentMultiplier.toFixed(2)}x!`;
         } else {
             statusSpan.innerHTML = `💀 CRASH at ${currentMultiplier.toFixed(2)}x`;
         }
         
-        if (rocketIcon) rocketIcon.style.animation = "none";
+        if (rocketIcon) rocketIcon.classList.remove('flying');
         
         crashHistory.unshift(currentMultiplier.toFixed(2) + 'x');
         if (crashHistory.length > 12) crashHistory.pop();
@@ -506,26 +519,26 @@
         hasCashed = false;
         currentMultiplier = 1;
         multiplierDisplay.innerText = "1.00x";
-        if (progressFill) progressFill.style.width = "0%";
+        if (flightFill) flightFill.style.width = "0%";
         updateUI();
         
         setTimeout(() => {
-            if (!isGameActive) statusSpan.innerHTML = "✈️ Place bet to start · Crash ANYTIME!";
+            if (!isGameActive) statusSpan.innerHTML = "✈️ Place bet to start · CRASH ANYTIME!";
         }, 1500);
     }
     
     function placeBet() {
         if (isGameActive) {
-            statusSpan.innerHTML = "Round active! Wait for crash or cashout.";
+            statusSpan.innerHTML = "⏳ Round active! Wait for crash or cashout.";
             return;
         }
         let amount = parseFloat(betInput.value);
         if (isNaN(amount) || amount < 10) {
-            statusSpan.innerHTML = "Min bet $10";
+            statusSpan.innerHTML = "❌ Minimum bet $10";
             return;
         }
         if (amount > balance) {
-            statusSpan.innerHTML = "Insufficient balance!";
+            statusSpan.innerHTML = "❌ Insufficient balance!";
             return;
         }
         balance -= amount;
@@ -538,18 +551,18 @@
     function cashOut() {
         if (!isGameActive || currentBet <= 0 || hasCashed) return;
         if (currentMultiplier < 1.02) {
-            statusSpan.innerHTML = "Multiplier too low! Wait a moment.";
+            statusSpan.innerHTML = "⚠️ Multiplier too low! Wait a second.";
             return;
         }
         let winAmount = currentBet * currentMultiplier;
         balance += winAmount;
         playSound('cashout');
         hasCashed = true;
-        statusSpan.innerHTML = `💰 CASHED OUT $${winAmount.toFixed(2)} at ${currentMultiplier.toFixed(2)}x!`;
+        statusSpan.innerHTML = `💰 CASHED OUT $${winAmount.toFixed(2)} at ${currentMultiplier.toFixed(2)}x! 🎉`;
         currentBet = 0;
         updateUI();
         cashoutBtn.disabled = true;
-        if (rocketIcon) rocketIcon.style.animation = "none";
+        if (rocketIcon) rocketIcon.classList.remove('flying');
     }
     
     function updateUI() {
@@ -560,13 +573,9 @@
         } else {
             potentialSpan.innerText = "0.00";
         }
-        if (!isGameActive || hasCashed || currentBet === 0) {
-            cashoutBtn.disabled = true;
-        } else if (currentMultiplier > 1.02) {
-            cashoutBtn.disabled = false;
-        }
     }
     
+    // Sound effects (smooth)
     function playSound(type) {
         if (!soundEnabled) return;
         try {
@@ -624,15 +633,14 @@
         else alert("Insufficient wallet balance");
     }
     function showProfile() {
-        alert(`👤 USER: AERO_TRADER\n💰 Wallet: $${balance.toFixed(2)}\n🎁 Refer Bonus: $${referBonus.toFixed(2)} (need $1000)\n📊 Total rounds: ${crashHistory.length}\n⚠️ Game is COMPLETELY UNPREDICTABLE!`);
+        alert(`👤 PILOT: AERO_TRADER\n💰 Wallet: $${balance.toFixed(2)}\n🎁 Refer Bonus: $${referBonus.toFixed(2)} (need $1000 to withdraw)\n📊 Total flights: ${crashHistory.length}\n🔥 50x+ spikes today: active`);
     }
     function showManual() {
         let modal = document.createElement('div'); modal.className = 'modal';
         modal.innerHTML = `<div class="modal-card"><h2>📘 AERO CRASH MANUAL</h2>
-        <div class="manual-step"><strong>⚠️ KEY FEATURE:</strong> This game is <span style="color:#ff6666">COMPLETELY UNPREDICTABLE</span>. Crash can happen at ANY moment — early, mid-flight, or after hovering.<br>❌ NO PATTERN to study!</div>
-        <div class="manual-step"><strong>1.</strong> Deposit min $10.<br><strong>2.</strong> Enter BET (min $10) & click PLACE BET.<br><strong>3.</strong> Multiplier rises with random speed & turbulence.<br><strong>4.</strong> Click CASH OUT before random CRASH → WIN = BET x MULTIPLIER.<br><strong>5.</strong> If CRASH hits → you LOSE the bet.<br><strong>6.</strong> Crash timing is random (1s - 20s). You CANNOT predict when!</div>
-        <div class="manual-step"><strong>🎯 TIP:</strong> Don't wait for the top — crash comes without warning! Cashout early or risk everything.</div>
-        <button id="closeManualBtn" class="close-modal">Got it, let's fly!</button></div>`;
+        <div class="manual-step"><strong>✈️ LIKE AVIATOR / JETX</strong><br>Turbo speed · Unpredictable crash · Cashout anytime!</div>
+        <div class="manual-step"><strong>1.</strong> Deposit min $10.<br><strong>2.</strong> Enter BET (min $10) & click PLACE BET.<br><strong>3.</strong> Multiplier rises FAST. Click CASH OUT before random CRASH → WIN = BET x MULTIPLIER.<br><strong>4.</strong> If CRASH hits before cashout → you LOSE the bet.<br><strong>5.</strong> Crash timing is random (1s - 18s). NO PATTERN to study!<br><strong>6.</strong> 50x+ spikes occur multiple times daily.<br><strong>7.</strong> Refer friends → $50 each (needs $1000 refer bonus to withdraw).<br><strong>8.</strong> Withdraw min $100 from wallet.</div>
+        <button id="closeManualBtn" class="close-modal">Start Flying!</button></div>`;
         document.body.appendChild(modal);
         document.getElementById('closeManualBtn')?.addEventListener('click', () => modal.remove());
     }
@@ -664,7 +672,7 @@
     document.getElementById('darkLightToggle')?.addEventListener('click', () => { darkMode = !darkMode; applyDarkLight(); updateSidebarToggles(); });
     document.getElementById('soundToggleSide')?.addEventListener('click', () => { soundEnabled = !soundEnabled; updateSidebarToggles(); });
     document.getElementById('musicToggleSide')?.addEventListener('click', () => { musicEnabled = !musicEnabled; toggleMusic(); updateSidebarToggles(); });
-    document.getElementById('animToggleSide')?.addEventListener('click', () => { animationsEnabled = !animationsEnabled; if (!animationsEnabled && rocketIcon) rocketIcon.style.animation = "none"; updateSidebarToggles(); });
+    document.getElementById('animToggleSide')?.addEventListener('click', () => { animationsEnabled = !animationsEnabled; if (!animationsEnabled && rocketIcon) rocketIcon.classList.remove('flying'); updateSidebarToggles(); });
     document.getElementById('profileBtn')?.addEventListener('click', showProfile);
     document.getElementById('depositBtnSide')?.addEventListener('click', showDeposit);
     document.getElementById('withdrawBtnSide')?.addEventListener('click', showWithdraw);
@@ -684,7 +692,7 @@
     applyDarkLight();
     updateSidebarToggles();
     renderStaticLeaderboards();
-    statusSpan.innerHTML = "✈️ AERO CRASH · TRULY RANDOM · CRASH ANYTIME!";
+    statusSpan.innerHTML = "✈️ LIKE AVIATOR/JETX · TURBO SPEED · CRASH ANYTIME!";
 </script>
 </body>
     </html>
