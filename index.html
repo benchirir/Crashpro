@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>NEBULA DRILL — Cosmic Crash Mining</title>
+    <title>NEBULA CRASH | High Risk Multiplier Game</title>
     <style>
         * {
             user-select: none;
@@ -12,664 +12,571 @@
         }
 
         body {
-            background: radial-gradient(ellipse at 30% 40%, #0a0718, #02010a);
+            background: radial-gradient(ellipse at 30% 20%, #0a0a1a, #020108);
             min-height: 100vh;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            font-family: 'Segoe UI', 'Orbitron', 'Rajdhani', monospace;
+            font-family: 'Segoe UI', 'Poppins', 'Inter', system-ui, sans-serif;
             margin: 0;
-            padding: 20px;
+            padding: 0;
         }
 
-        /* main game panel — different glassmorphic style */
-        .game-container {
-            max-width: 760px;
-            width: 100%;
-            background: rgba(5, 8, 22, 0.7);
-            backdrop-filter: blur(12px);
-            border-radius: 48px;
-            padding: 24px 26px 32px;
-            box-shadow: 0 30px 40px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(210, 180, 255, 0.2);
-            border: 1px solid rgba(130, 80, 220, 0.4);
-            transition: all 0.2s;
+        /* top menu bar */
+        .menu-bar {
+            background: rgba(0, 0, 0, 0.65);
+            backdrop-filter: blur(16px);
+            padding: 8px 24px;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid rgba(255, 200, 80, 0.3);
+            gap: 12px;
+            position: sticky;
+            top: 0;
+            z-index: 100;
         }
 
-        /* header with asteroid / multiplier fusion */
-        .multiplier-area {
-            text-align: center;
-            margin-bottom: 1rem;
-            position: relative;
-        }
-
-        .current-multiplier {
-            font-size: 5.2rem;
-            font-weight: 900;
-            letter-spacing: 6px;
-            background: linear-gradient(135deg, #E0C8FF, #A855F7, #7C3AED);
+        .logo {
+            font-weight: 800;
+            background: linear-gradient(135deg, #FFD966, #FF8C42);
             -webkit-background-clip: text;
             background-clip: text;
             color: transparent;
-            text-shadow: 0 0 18px rgba(168, 85, 247, 0.5);
-            font-family: 'Orbitron', monospace;
+            font-size: 1.4rem;
         }
 
-        .depth-meter {
-            display: inline-flex;
+        .menu-controls {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
             align-items: center;
-            gap: 10px;
-            background: #0e0a1fe0;
-            padding: 6px 18px;
-            border-radius: 60px;
-            font-size: 0.85rem;
-            font-weight: 500;
-            color: #c4b5fd;
-            margin-top: 6px;
-            backdrop-filter: blur(4px);
-            border: 1px solid #7e5bef40;
         }
 
-        /* canvas: "mining depth scanner" */
-        .canvas-wrapper {
-            background: #030018;
+        .menu-btn {
+            background: #1e1a2f;
+            border: none;
+            color: #ffd966;
+            font-size: 1.2rem;
+            padding: 6px 12px;
             border-radius: 40px;
-            padding: 8px;
-            box-shadow: 0 12px 28px #00000066, inset 0 0 0 1px #5b3cc4;
-            margin: 12px 0 20px;
+            cursor: pointer;
+            transition: 0.1s;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .menu-btn:active { transform: scale(0.96); background: #2f2950; }
+        .toggle-active { background: #5a3e2b; color: #ffdfa0; box-shadow: 0 0 6px gold; }
+
+        /* main game panel */
+        .game-container {
+            max-width: 800px;
+            margin: 20px auto;
+            background: rgba(5, 8, 22, 0.7);
+            backdrop-filter: blur(12px);
+            border-radius: 48px;
+            padding: 20px 24px 30px;
+            box-shadow: 0 25px 40px black;
+            border: 1px solid #f0a34b40;
+        }
+
+        .multiplier-area {
+            text-align: center;
+        }
+
+        #multiplierDisplay {
+            font-size: 5rem;
+            font-weight: 900;
+            background: linear-gradient(135deg, #FFE6B0, #FFB347);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            text-shadow: 0 0 20px rgba(255,160,0,0.5);
+            font-family: monospace;
         }
 
         canvas {
-            display: block;
             width: 100%;
-            background: #010006;
+            background: #010106;
             border-radius: 32px;
-            cursor: pointer;
-            height: auto;
+            margin: 12px 0;
+            display: block;
+            border: 1px solid #f0a34b60;
         }
 
-        /* 3-panel info: fuel (balance), stress (potential), last find */
         .info-panel {
             display: flex;
             justify-content: space-between;
-            gap: 12px;
-            margin: 20px 0 12px;
-            background: #03000faa;
-            padding: 14px 20px;
-            border-radius: 48px;
-            backdrop-filter: blur(8px);
+            background: #03000f99;
+            border-radius: 60px;
+            padding: 12px 20px;
+            margin: 16px 0;
             flex-wrap: wrap;
+            gap: 12px;
         }
 
-        .info-card {
-            flex: 1;
-            text-align: center;
-            background: rgba(0, 0, 0, 0.5);
-            border-radius: 32px;
-            padding: 8px 6px;
-        }
+        .wallet-card { flex: 1; text-align: center; }
+        .label { font-size: 0.7rem; color: #aa99ff; }
+        .value { font-size: 1.6rem; font-weight: bold; color: #FFE5A3; }
 
-        .fuel-label, .stress-label, .last-label {
-            font-size: 0.7rem;
-            text-transform: uppercase;
-            letter-spacing: 2px;
-            color: #8b7ac9;
-        }
-
-        .fuel-value, .stress-value, .last-value {
-            font-size: 1.7rem;
-            font-weight: 800;
-            color: #ffe6b3;
-            font-family: monospace;
-        }
-
-        /* Bet control - mining rig investment */
-        .drill-control {
-            background: #08041cd9;
-            border-radius: 56px;
+        .bet-panel {
+            background: #0b0722;
+            border-radius: 60px;
             padding: 12px 18px;
             display: flex;
-            align-items: center;
-            justify-content: space-between;
             flex-wrap: wrap;
             gap: 12px;
-            margin: 16px 0;
-            border: 1px solid #4540aa40;
-        }
-
-        .invest-area {
-            display: flex;
             align-items: center;
-            gap: 10px;
+            justify-content: space-between;
+        }
+
+        .bet-input {
             background: #01000c;
-            padding: 4px 20px;
-            border-radius: 60px;
+            padding: 6px 18px;
+            border-radius: 50px;
         }
-
-        .invest-area label {
-            font-weight: 600;
-            color: #b7a6ff;
-        }
-
-        #drillPower {
+        .bet-input input {
             background: transparent;
             border: none;
-            font-size: 1.4rem;
-            font-weight: 700;
+            font-size: 1.3rem;
             width: 100px;
-            color: #facc15;
-            outline: none;
-            font-family: monospace;
-        }
-
-        .preset-buttons {
-            display: flex;
-            gap: 10px;
-        }
-
-        .preset {
-            background: #1f1a3a;
-            border: none;
+            color: gold;
             font-weight: bold;
-            padding: 6px 14px;
-            border-radius: 40px;
-            color: #cdc2ff;
-            cursor: pointer;
-            transition: 0.08s linear;
-            font-family: monospace;
         }
 
-        .preset:active {
-            transform: scale(0.94);
-            background: #443c74;
-        }
+        .chip { background: #2a2350; border: none; padding: 8px 16px; border-radius: 40px; color: white; cursor: pointer; margin: 0 4px; }
 
         .action-buttons {
             display: flex;
-            gap: 18px;
-            margin: 18px 0 12px;
+            gap: 16px;
+            margin: 18px 0;
         }
-
-        .action-btn {
+        .btn {
             flex: 1;
-            padding: 14px 0;
-            font-weight: 800;
-            font-size: 1.2rem;
+            padding: 14px;
+            font-weight: bold;
             border: none;
-            border-radius: 50px;
-            cursor: pointer;
-            transition: 0.08s linear;
-            font-family: 'Rajdhani', monospace;
-            letter-spacing: 1.5px;
-        }
-
-        .drill-btn {
-            background: linear-gradient(95deg, #4f46e5, #7c3aed);
-            box-shadow: 0 6px 0 #2e1a6b;
-            color: white;
-        }
-
-        .extract-btn {
-            background: linear-gradient(95deg, #eab308, #ca8a04);
-            box-shadow: 0 6px 0 #7a550a;
-            color: #1e1a0a;
-        }
-
-        .action-btn:active {
-            transform: translateY(2px);
-            box-shadow: 0 2px 0 #00000066;
-        }
-
-        .action-btn:disabled {
-            opacity: 0.5;
-            transform: none;
-            cursor: not-allowed;
-            filter: grayscale(0.2);
-        }
-
-        /* disaster log (history but different name) */
-        .excavation-log {
-            margin-top: 24px;
-            background: #020014b3;
-            border-radius: 40px;
-            padding: 12px 18px;
-            backdrop-filter: blur(4px);
-        }
-
-        .log-title {
-            font-size: 0.7rem;
-            letter-spacing: 3px;
-            color: #a593fc;
-            margin-bottom: 8px;
-        }
-
-        .log-list {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 10px;
-            align-items: center;
-        }
-
-        .log-entry {
-            background: #18122e;
-            padding: 5px 16px;
-            border-radius: 36px;
-            font-weight: 700;
-            font-size: 0.9rem;
-            color: #ffd966;
-            font-family: monospace;
-            border-left: 3px solid #facc15;
-        }
-
-        .warning-sign {
-            font-size: 0.75rem;
-            background: #4c1d95;
-            display: inline-block;
-            padding: 4px 14px;
             border-radius: 60px;
-            margin-top: 6px;
+            font-size: 1.1rem;
+            cursor: pointer;
         }
+        .btn-bet { background: #2b7a3e; color: white; box-shadow: 0 4px 0 #124d23; }
+        .btn-cashout { background: #e07c1f; color: #1e1a0a; box-shadow: 0 4px 0 #8a4f0e; }
+        .btn:active { transform: translateY(2px); }
+        .btn:disabled { opacity: 0.5; transform: none; }
 
-        @media (max-width: 550px) {
-            .current-multiplier {
-                font-size: 3.6rem;
-            }
-            .fuel-value {
-                font-size: 1.3rem;
-            }
+        .history-area { margin-top: 20px; background: #02000c80; border-radius: 40px; padding: 12px; }
+        .history-list { display: flex; flex-wrap: wrap; gap: 8px; }
+
+        .modal {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: #000000cc;
+ backdrop-filter: blur(8px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
         }
+        .modal-card {
+            background: #15122b;
+            border-radius: 48px;
+            padding: 24px;
+            width: 300px;
+            text-align: center;
+            border: 1px solid gold;
+        }
+        input, button { font-family: inherit; }
+        .refer-code { background: #2f2a4a; padding: 8px; border-radius: 30px; margin: 12px 0; }
+        .close-modal { background: #7a5a2a; margin-top: 16px; }
     </style>
 </head>
 <body>
+
+<div class="menu-bar">
+    <div class="logo">⚡ CRASH X · NEBULA</div>
+    <div class="menu-controls">
+        <button class="menu-btn" id="brightnessToggle">☀️ Bright</button>
+        <button class="menu-btn" id="soundToggle">🔊 Sound</button>
+        <button class="menu-btn" id="musicToggle">🎵 Music</button>
+        <button class="menu-btn" id="animationToggle">✨ Anim</button>
+        <button class="menu-btn" id="turboToggle">🚀 Turbo</button>
+        <button class="menu-btn" id="slowModeBtn">🐢 Slow</button>
+        <button class="menu-btn" id="referBtn">🏆 Refer & Earn</button>
+    </div>
+</div>
+
 <div class="game-container">
     <div class="multiplier-area">
-        <div class="current-multiplier" id="depthMultiplier">1.00x</div>
-        <div class="depth-meter">
-            <span>🌀 DRILL DEPTH</span>
-            <span id="drillStatusIcon">⚙️ IDLE</span>
-        </div>
+        <div id="multiplierDisplay">1.00x</div>
+        <div id="statusMsg" style="font-size:0.8rem; color:#ffbf69;">⚡ Waiting for bet</div>
     </div>
-
-    <div class="canvas-wrapper">
-        <canvas id="miningCanvas" width="720" height="360" style="width:100%; height:auto; max-width:720px; aspect-ratio:720/360"></canvas>
-    </div>
+    <canvas id="crashCanvas" width="700" height="340" style="width:100%; aspect-ratio:700/340"></canvas>
 
     <div class="info-panel">
-        <div class="info-card">
-            <div class="fuel-label">⛏️ FUEL CELLS (BALANCE)</div>
-            <div class="fuel-value" id="balanceValue">2500</div>
-        </div>
-        <div class="info-card">
-            <div class="stress-label">⚡ POTENTIAL ORE</div>
-            <div class="stress-value" id="potentialOre">0</div>
-        </div>
-        <div class="info-card">
-            <div class="last-label">💎 LAST HAUL</div>
-            <div class="last-value" id="lastExtract">—</div>
-        </div>
+        <div class="wallet-card"><div class="label">💰 WALLET</div><div class="value" id="walletBalance">1000.00</div></div>
+        <div class="wallet-card"><div class="label">🎁 REFER BONUS</div><div class="value" id="referBalance">0.00</div></div>
+        <div class="wallet-card"><div class="label">⚡ POTENTIAL WIN</div><div class="value" id="potentialWin">0.00</div></div>
     </div>
 
-    <div class="drill-control">
-        <div class="invest-area">
-            <label>⚙️ INVEST FUEL</label>
-            <input type="number" id="drillPower" value="20" step="5" min="1" max="1000">
-        </div>
-        <div class="preset-buttons">
-            <button class="preset" data-add="10">+10</button>
-            <button class="preset" data-add="25">+25</button>
-            <button class="preset" data-add="50">+50</button>
-            <button class="preset" data-add="100">+100</button>
-        </div>
+    <div class="bet-panel">
+        <div class="bet-input"><label>💎 BET $</label><input type="number" id="betAmount" value="10" step="5" min="1"></div>
+        <div><button class="chip" data-chip="10">+10</button><button class="chip" data-chip="25">+25</button><button class="chip" data-chip="50">+50</button><button class="chip" data-chip="100">+100</button></div>
     </div>
 
     <div class="action-buttons">
-        <button class="action-btn drill-btn" id="startDrillBtn">🪨 START DRILLING</button>
-        <button class="action-btn extract-btn" id="extractOreBtn" disabled>💎 EXTRACT / CASHOUT</button>
+        <button class="btn btn-bet" id="placeBetBtn">🛸 PLACE BET</button>
+        <button class="btn btn-cashout" id="cashoutBtn" disabled>💎 CASH OUT</button>
     </div>
 
-    <div class="excavation-log">
-        <div class="log-title">📡 EXCAVATION LOG (CRASH POINTS)</div>
-        <div class="log-list" id="logList">
-            <span style="color:#6b5b9b;">— no seismic events —</span>
-        </div>
+    <div class="history-area">
+        <div style="font-size:0.7rem;">📜 CRASH HISTORY</div>
+        <div class="history-list" id="historyList">—</div>
     </div>
 </div>
 
 <script>
-    (function() {
-        // ----- DIFFERENT MECHANICS ----
-        // Instead of pure multiplier betting, we simulate a drilling rig that goes deeper (multiplier rises)
-        // but it can "hit a seismic shock" (crash) at any depth. The risk increases with depth.
-        // Players invest fuel (bet), and can extract (cashout) at any depth to convert fuel * depth multiplier to balance.
-        // Key difference: the crash probability increases non-linearly the deeper you go, and you can also see "stress" meter.
-        // Also uses random event 'cave-in' at random point but more suspense: multiplier accelerates faster after certain depth.
-        
-        // DOM elements
-        const canvas = document.getElementById('miningCanvas');
-        const ctx = canvas.getContext('2d');
-        const depthMultiplierSpan = document.getElementById('depthMultiplier');
-        const drillStatusSpan = document.getElementById('drillStatusIcon');
-        const balanceSpan = document.getElementById('balanceValue');
-        const potentialSpan = document.getElementById('potentialOre');
-        const lastExtractSpan = document.getElementById('lastExtract');
-        const drillInput = document.getElementById('drillPower');
-        const startDrillBtn = document.getElementById('startDrillBtn');
-        const extractBtn = document.getElementById('extractOreBtn');
-        const logList = document.getElementById('logList');
-        
-        // state
-        let balance = 2500;            // fuel cells
-        let currentInvestment = 0;     // active invested fuel (bet)
-        let isDrilling = false;         // round active (depth rising)
-        let hasExtracted = false;       // prevent double extraction
-        let currentDepthMultiplier = 1.00;
-        let caveInPoint = 1.00;         // the depth where disaster strikes (random)
-        let animationId = null;
-        let drillStartTime = 0;
-        let lastExtractValue = 0;
-        let disasterHistory = [];       // store crash points (max 10)
-        
-        // canvas dimens
-        let canvasWidth = 720;
-        let canvasHeight = 360;
-        
-        // helper
-        function resizeCanvas() {
-            const container = canvas.parentElement;
-            const w = container.clientWidth;
-            canvas.width = Math.min(720, w - 16);
-            canvas.height = canvas.width * (360/720);
-            canvasWidth = canvas.width;
-            canvasHeight = canvas.height;
-            drawDepthCurve();
-        }
-        window.addEventListener('resize', () => { resizeCanvas(); drawDepthCurve(); });
-        
-        // update UI 
-        function updateUI() {
-            balanceSpan.innerText = Math.floor(balance);
-            if (isDrilling && currentInvestment > 0 && !hasExtracted) {
-                let potential = currentInvestment * currentDepthMultiplier;
-                potentialSpan.innerText = Math.floor(potential);
-            } else {
-                potentialSpan.innerText = "0";
+    // ---------- ADVANCED FEATURES ----------
+    // DOM elements
+    const multiplierDisplay = document.getElementById('multiplierDisplay');
+    const statusSpan = document.getElementById('statusMsg');
+    const walletSpan = document.getElementById('walletBalance');
+    const referBonusSpan = document.getElementById('referBalance');
+    const potentialSpan = document.getElementById('potentialWin');
+    const betInput = document.getElementById('betAmount');
+    const placeBtn = document.getElementById('placeBetBtn');
+    const cashoutBtn = document.getElementById('cashoutBtn');
+    const historyDiv = document.getElementById('historyList');
+    const canvas = document.getElementById('crashCanvas');
+    const ctx = canvas.getContext('2d');
+
+    // Game core state
+    let balance = 1000.0;        // main wallet
+    let referBonus = 0.0;        // refer earnings (cannot withdraw until reaches 1000)
+    let currentBet = 0;
+    let isGameActive = false;     // round running
+    let hasCashed = false;
+    let currentMultiplier = 1.00;
+    let crashPoint = 1.00;
+    let animationId = null;
+    let roundStart = 0;
+    let crashHistory = [];
+
+    // Turbo / Slow mode (affects multiplier speed)
+    let turboMode = false;        // faster rise
+    let slowMode = false;         // reduced speed (overrides turbo if both false neutral)
+    let animationEnabled = true;
+    let soundEnabled = true;
+    let musicEnabled = false;
+    let brightnessLevel = 1;      // 1 = normal, 0 = dark (just css class)
+    let musicAudio = null;
+    let cashoutSound = null;
+    let crashSound = null;
+    let bgMusicPlaying = false;
+
+    // helper sounds (web audio simple)
+    function playSound(type) {
+        if (!soundEnabled) return;
+        try {
+            let audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            let oscillator = audioCtx.createOscillator();
+            let gain = audioCtx.createGain();
+            oscillator.connect(gain);
+            gain.connect(audioCtx.destination);
+            oscillator.type = 'sine';
+            if (type === 'cashout') {
+                oscillator.frequency.value = 880;
+                gain.gain.value = 0.2;
+                oscillator.start();
+                gain.gain.exponentialRampToValueAtTime(0.00001, audioCtx.currentTime + 0.8);
+                oscillator.stop(audioCtx.currentTime + 0.6);
+            } else if (type === 'crash') {
+                oscillator.frequency.value = 220;
+                gain.gain.value = 0.25;
+                oscillator.start();
+                gain.gain.exponentialRampToValueAtTime(0.00001, audioCtx.currentTime + 1);
+                oscillator.stop(audioCtx.currentTime + 0.9);
+            } else if (type === 'bet') {
+                oscillator.frequency.value = 660;
+                gain.gain.value = 0.1;
+                oscillator.start();
+                oscillator.stop(audioCtx.currentTime + 0.2);
             }
-            if (currentInvestment > 0 && isDrilling && !hasExtracted && currentDepthMultiplier > 1.05) {
-                extractBtn.disabled = false;
-            } else {
-                extractBtn.disabled = true;
-            }
-            if (!isDrilling && currentInvestment === 0) {
-                extractBtn.disabled = true;
-            }
-            if (currentDepthMultiplier > 1) {
-                drillStatusSpan.innerHTML = `📈 DEPTH: ${currentDepthMultiplier.toFixed(2)}x`;
-            } else {
-                drillStatusSpan.innerHTML = isDrilling ? "🔄 BORING..." : "⏸️ STANDBY";
-            }
+            audioCtx.close();
+        } catch(e) { }
+    }
+
+    function initMusic() {
+        if (!musicEnabled || bgMusicPlaying) return;
+        try {
+            if (musicAudio) musicAudio.pause();
+            musicAudio = new Audio('data:audio/wav;base64,U3RlYWx0aC1zb2Z0LW11c2ljLXdpdGhvdXQtcmVhbC1maWxlLWZha2U='); // dummy, but we generate fake loop with osc?
+            // for simplicity, we use oscillator loop, but we'll implement a simple beep loop? better just use no actual external file, but users expect smooth bgm. we'll use WebAudio synth pad loop
+            // Instead we create a simple ambient drone using setInterval (acceptable demo)
+            if (window.bgmInterval) clearInterval(window.bgmInterval);
+            let actxCtx = new (window.AudioContext || window.webkitAudioContext)();
+            let playLoop = () => {
+                if (!musicEnabled || !bgMusicPlaying) return;
+                let osc = actxCtx.createOscillator();
+                let gain = actxCtx.createGain();
+                osc.connect(gain);
+                gain.connect(actxCtx.destination);
+                osc.type = 'sine';
+                osc.frequency.value = 174;
+                gain.gain.value = 0.05;
+                osc.start();
+                gain.gain.exponentialRampToValueAtTime(0.0001, actxCtx.currentTime + 2);
+                osc.stop(actxCtx.currentTime + 2.2);
+            };
+            bgMusicPlaying = true;
+            window.bgmInterval = setInterval(() => { if(musicEnabled && bgMusicPlaying) playLoop(); }, 2800);
+        } catch(e){}
+    }
+    function stopMusic() { bgMusicPlaying = false; if(window.bgmInterval) clearInterval(window.bgmInterval); }
+
+    // UI brightness
+    function applyBrightness() {
+        if (brightnessLevel === 0) document.body.style.filter = 'brightness(0.7) contrast(1.2)';
+        else document.body.style.filter = 'brightness(1)';
+    }
+
+    // ---------- UNPREDICTABLE CRASH LOGIC ----------
+    // high variance: crash from 1.01 up to 150x, but average ~2.5x, very unpredictable
+    function generateUnpredictableCrash() {
+        let r = Math.random();
+        let crash;
+        if (r < 0.55) { // 55% chance early crash 1.0x - 2.2x  (player often loses)
+            crash = 1 + Math.random() * 1.2;
+        } else if (r < 0.8) { // 25% mid 2.2x - 5x
+            crash = 2.2 + Math.random() * 2.8;
+        } else if (r < 0.95) { // 15% high 5x - 20x
+            crash = 5 + Math.random() * 15;
+        } else {
+            crash = 20 + Math.random() * 130; // jackpot rare
         }
-        
-        // seismic event (crash) record
-        function addSeismicEvent(crashDepth) {
-            disasterHistory.unshift(crashDepth.toFixed(2) + 'x');
-            if (disasterHistory.length > 10) disasterHistory.pop();
-            renderLog();
+        return parseFloat(crash.toFixed(2));
+    }
+
+    // dynamic speed factor depending on turbo/slow
+    function getSpeedFactor() {
+        if (turboMode) return 1.6;
+        if (slowMode) return 0.5;
+        return 1.0;
+    }
+
+    // draw curve
+    function drawCurve() {
+        if (!ctx) return;
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        ctx.fillStyle = '#010106';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        let maxMulti = (isGameActive && currentMultiplier) ? Math.max(currentMultiplier, crashPoint) : crashPoint;
+        if (maxMulti < 1.5) maxMulti = 3;
+        for (let x = 0; x <= canvas.width; x+=6) {
+            let t = x / canvas.width;
+            let mult = 1 + (maxMulti-1) * (1 - Math.pow(1-t, 1.8));
+            let y = canvas.height - (mult / maxMulti) * canvas.height;
+            if (x===0) ctx.beginPath();
+            ctx.lineTo(x, y);
         }
-        
-        function renderLog() {
-            logList.innerHTML = '';
-            if (disasterHistory.length === 0) {
-                logList.innerHTML = '<span style="color:#6b5b9b;">— no seismic events —</span>';
-                return;
-            }
-            disasterHistory.forEach(ev => {
-                const entry = document.createElement('div');
-                entry.className = 'log-entry';
-                entry.innerText = `💥 ${ev}`;
-                logList.appendChild(entry);
-            });
-        }
-        
-        // generate cave-in depth point (crash point) -> uses exponential distribution but different range: 1.1x to 8.5x mostly, occasional high
-        function generateCaveInDepth() {
-            let r = Math.random();
-            // custom distribution: heavy chance between 1.3 and 4.5, extremes rare, min 1.12
-            let raw = 1.1 + Math.pow(r, 1.6) * 12;
-            let depth = Math.min(18.0, Math.max(1.12, raw));
-            return Math.floor(depth * 100) / 100;
-        }
-        
-        // drawing the mining depth curve with "stress zone" visualization
-        function drawDepthCurve() {
-            if (!ctx) return;
-            ctx.clearRect(0, 0, canvasWidth, canvasHeight);
-            ctx.fillStyle = '#02000c';
-            ctx.fillRect(0, 0, canvasWidth, canvasHeight);
-            
-            // grid lines
+        ctx.strokeStyle = '#f0a34b';
+        ctx.lineWidth = 3;
+        ctx.stroke();
+        if (isGameActive && currentMultiplier) {
+            let tPos = Math.min(0.99, (currentMultiplier-1)/(maxMulti-1));
+            let dotX = canvas.width * tPos;
+            let multY = 1 + (maxMulti-1) * (1 - Math.pow(1-tPos, 1.8));
+            let dotY = canvas.height - (multY / maxMulti) * canvas.height;
+            ctx.fillStyle = '#ffcc55';
             ctx.beginPath();
-            ctx.strokeStyle = '#342a6e';
-            ctx.lineWidth = 0.6;
-            for (let i = 0; i <= 4; i++) {
-                let y = canvasHeight - (i / 4) * canvasHeight;
-                ctx.moveTo(0, y);
-                ctx.lineTo(canvasWidth, y);
-                ctx.stroke();
-            }
-            // draw theoretical depth curve (risk curve)
-            let maxDepth = (isDrilling && currentDepthMultiplier > 1) ? Math.max(currentDepthMultiplier, 2.5) : (caveInPoint > 1 ? caveInPoint : 3.5);
-            if (!isDrilling && currentDepthMultiplier > 1) maxDepth = currentDepthMultiplier;
-            if (maxDepth < 1.5) maxDepth = 3.0;
-            const points = [];
-            for (let px = 0; px <= canvasWidth; px += 5) {
-                let t = px / canvasWidth; // 0..1
-                let depthVal = 1 + (maxDepth - 1) * (1 - Math.pow(1 - t, 1.5));
-                let y = canvasHeight - (Math.min(depthVal, maxDepth) / maxDepth) * canvasHeight;
-                points.push({x: px, y: y});
-            }
-            ctx.beginPath();
-            ctx.strokeStyle = '#f0a34b';
-            ctx.lineWidth = 3;
-            ctx.shadowBlur = 0;
-            for (let i=0; i<points.length; i++) {
-                if (i===0) ctx.moveTo(points[i].x, points[i].y);
-                else ctx.lineTo(points[i].x, points[i].y);
-            }
-            ctx.stroke();
-            
-            // danger zone (red hatch)
-            if (maxDepth > 2.5) {
-                ctx.globalAlpha = 0.3;
-                ctx.fillStyle = "#ff3366";
-                let dangerStartY = canvasHeight - (2.5 / maxDepth) * canvasHeight;
-                ctx.fillRect(0, dangerStartY, canvasWidth, canvasHeight - dangerStartY);
-                ctx.globalAlpha = 1.0;
-            }
-            
-            // animated drill bit (current depth)
-            if (isDrilling && currentDepthMultiplier >= 1) {
-                let tPos = Math.min(1, (currentDepthMultiplier - 1) / (maxDepth - 1));
-                let dotX = canvasWidth * tPos;
-                let depthShow = 1 + (maxDepth - 1) * (1 - Math.pow(1 - tPos, 1.5));
-                let dotY = canvasHeight - (Math.min(depthShow, maxDepth) / maxDepth) * canvasHeight;
-                ctx.beginPath();
-                ctx.fillStyle = '#ffb347';
-                ctx.arc(dotX, dotY, 10, 0, Math.PI*2);
-                ctx.fill();
-                ctx.beginPath();
-                ctx.fillStyle = '#ffe484';
-                ctx.arc(dotX, dotY, 5, 0, Math.PI*2);
-                ctx.fill();
-            }
-            
-            if (!isDrilling && caveInPoint > 1 && !hasExtracted && currentInvestment === 0) {
-                ctx.font = "bold 22px monospace";
-                ctx.fillStyle = "#ff8866";
-                ctx.shadowBlur = 0;
-                ctx.fillText("🪨 CAVE-IN!", canvasWidth-120, 55);
-            }
+            ctx.arc(dotX, dotY, 8, 0, Math.PI*2);
+            ctx.fill();
         }
-        
-        // seismic collapse (crash)
-        function causeCaveIn() {
-            if (!isDrilling) return;
-            if (animationId) cancelAnimationFrame(animationId);
-            isDrilling = false;
-            // If player didn't extract and had investment -> lost investment
-            if (currentInvestment > 0 && !hasExtracted) {
-                // loss: no refund
-                drillStatusSpan.innerHTML = `💥 CAVE-IN at ${caveInPoint.toFixed(2)}x depth · Lost ${currentInvestment} fuel`;
-                currentInvestment = 0;
-            } else if (currentInvestment > 0 && hasExtracted) {
-                drillStatusSpan.innerHTML = `✅ SAFE EXTRACTION at ${currentDepthMultiplier.toFixed(2)}x | Drill collapsed afterward`;
-                currentInvestment = 0;
-            } else {
-                drillStatusSpan.innerHTML = `💀 DRILL DESTROYED at ${caveInPoint.toFixed(2)}x`;
-            }
-            addSeismicEvent(caveInPoint);
-            hasExtracted = false;
-            currentDepthMultiplier = 1.00;
-            depthMultiplierSpan.innerText = "1.00x";
-            updateUI();
-            drawDepthCurve();
-            // auto restart after 4.5 seconds idle
-            setTimeout(() => {
-                if (!isDrilling && currentInvestment === 0 && !animationId) {
-                    // idle - ready for next drill start
-                    drillStatusSpan.innerHTML = "🟢 READY TO DRILL";
-                }
-            }, 2000);
+    }
+
+    // update UI and potential win
+    function updateUI() {
+        walletSpan.innerText = balance.toFixed(2);
+        referBonusSpan.innerText = referBonus.toFixed(2);
+        if (isGameActive && currentBet > 0 && !hasCashed) {
+            let pot = currentBet * currentMultiplier;
+            potentialSpan.innerText = pot.toFixed(2);
+        } else potentialSpan.innerText = "0.00";
+        cashoutBtn.disabled = !(isGameActive && currentBet > 0 && !hasCashed && currentMultiplier > 1.02);
+    }
+
+    // crash event
+    function crashEvent() {
+        if (!isGameActive) return;
+        if (animationId) cancelAnimationFrame(animationId);
+        isGameActive = false;
+        if (currentBet > 0 && !hasCashed) {
+            // LOSS!
+            statusSpan.innerText = `💥 CRASHED at ${crashPoint.toFixed(2)}x · You lost $${currentBet.toFixed(2)}`;
+            playSound('crash');
+            currentBet = 0;
+        } else if (hasCashed) {
+            statusSpan.innerText = `✅ Cashed out at ${currentMultiplier.toFixed(2)}x!`;
+        } else {
+            statusSpan.innerText = `💀 CRASH ${crashPoint.toFixed(2)}x`;
         }
-        
-        // start drilling (round)
-        function startDrilling() {
-            if (isDrilling) {
-                drillStatusSpan.innerHTML = "⚠️ Already drilling deep!";
+        // add to history
+        crashHistory.unshift(crashPoint.toFixed(2)+'x');
+        if(crashHistory.length>10) crashHistory.pop();
+        historyDiv.innerHTML = crashHistory.map(h=>`<span style="background:#1e1a3a; padding:4px 12px; border-radius:30px;">${h}</span>`).join('');
+        currentBet = 0;
+        hasCashed = false;
+        currentMultiplier = 1;
+        multiplierDisplay.innerText = "1.00x";
+        updateUI();
+        drawCurve();
+        // auto restart ready, but user must place bet again
+        setTimeout(() => {
+            if(!isGameActive) statusSpan.innerText = "✨ Place bet to start new round";
+        }, 1000);
+    }
+
+    // start round animation
+    function startRound() {
+        if (isGameActive) return;
+        if (currentBet <= 0) { statusSpan.innerText = "Place a bet first!"; return; }
+        crashPoint = generateUnpredictableCrash();
+        currentMultiplier = 1.00;
+        multiplierDisplay.innerText = "1.00x";
+        isGameActive = true;
+        hasCashed = false;
+        roundStart = performance.now();
+        statusSpan.innerText = "🚀 Flying! Cashout anytime...";
+        updateUI();
+        drawCurve();
+        if(animationId) cancelAnimationFrame(animationId);
+        function animate(now) {
+            if (!isGameActive) return;
+            let elapsed = (now - roundStart) / 1000;
+            let speed = getSpeedFactor();
+            let timeRatio = elapsed * speed;
+            let maxTime = 12; // max to crash
+            let t = Math.min(1, timeRatio / maxTime);
+            let mult = 1 + (crashPoint - 1) * Math.pow(t, 1.5);
+            if (mult >= crashPoint || timeRatio >= maxTime) {
+                currentMultiplier = crashPoint;
+                multiplierDisplay.innerText = crashPoint.toFixed(2)+"x";
+                crashEvent();
                 return;
             }
-            let investAmount = parseFloat(drillInput.value);
-            if (isNaN(investAmount) || investAmount <= 0) investAmount = 10;
-            if (investAmount > balance) {
-                drillStatusSpan.innerHTML = "❌ Not enough fuel cells!";
-                return;
-            }
-            if (investAmount < 1) investAmount = 1;
-            // deduct investment
-            balance -= investAmount;
-            currentInvestment = investAmount;
-            hasExtracted = false;
-            // generate new random cave-in point (unique each drill)
-            caveInPoint = generateCaveInDepth();
-            currentDepthMultiplier = 1.00;
-            depthMultiplierSpan.innerText = "1.00x";
-            isDrilling = true;
-            drillStartTime = performance.now();
-            updateUI();
-            drawDepthCurve();
-            // start animation loop with modified acceleration (faster deeper = more suspense)
-            if (animationId) cancelAnimationFrame(animationId);
-            function depthLoop(now) {
-                if (!isDrilling) return;
-                let elapsed = (now - drillStartTime) / 1000;
-                // acceleration curve: multiplier = 1 + (caveInPoint-1) * (elapsed / 11)^1.9, max duration 10 sec
-                let t = Math.min(1, elapsed / 9.8);
-                let eased = Math.pow(t, 1.4);
-                let mult = 1 + (caveInPoint - 1) * eased;
-                if (mult >= caveInPoint || elapsed >= 10.5) {
-                    currentDepthMultiplier = caveInPoint;
-                    depthMultiplierSpan.innerText = caveInPoint.toFixed(2) + "x";
-                    causeCaveIn();
-                    return;
-                }
-                currentDepthMultiplier = parseFloat(mult.toFixed(4));
-                depthMultiplierSpan.innerText = currentDepthMultiplier.toFixed(2) + "x";
-                if (currentInvestment > 0 && !hasExtracted) {
-                    let potential = currentInvestment * currentDepthMultiplier;
-                    potentialSpan.innerText = Math.floor(potential);
-                }
-                updateUI();
-                drawDepthCurve();
-                animationId = requestAnimationFrame(depthLoop);
-            }
-            animationId = requestAnimationFrame(depthLoop);
-            drillStatusSpan.innerHTML = `🛠️ DRILLING to unknown depth...`;
+            currentMultiplier = parseFloat(mult.toFixed(4));
+            multiplierDisplay.innerText = currentMultiplier.toFixed(2)+"x";
+            if (currentBet > 0 && !hasCashed) updateUI();
+            drawCurve();
+            animationId = requestAnimationFrame(animate);
         }
-        
-        // Extract ore (cashout)
-        function extractOre() {
-            if (!isDrilling) {
-                drillStatusSpan.innerHTML = "No active drilling operation!";
-                return;
-            }
-            if (currentInvestment <= 0) {
-                drillStatusSpan.innerHTML = "No fuel invested to extract!";
-                return;
-            }
-            if (hasExtracted) {
-                drillStatusSpan.innerHTML = "Already extracted this vein!";
-                return;
-            }
-            if (currentDepthMultiplier <= 1.02) {
-                drillStatusSpan.innerHTML = "Depth too shallow, drill deeper (min 1.05x)";
-                return;
-            }
-            // extraction success
-            let reward = currentInvestment * currentDepthMultiplier;
-            balance += reward;
-            lastExtractValue = reward;
-            lastExtractSpan.innerText = Math.floor(reward);
-            drillStatusSpan.innerHTML = `💎 EXTRACTED ${Math.floor(reward)} ore at ${currentDepthMultiplier.toFixed(2)}x depth!`;
-            hasExtracted = true;
-            currentInvestment = 0;
-            updateUI();
-            drawDepthCurve();
-            extractBtn.disabled = true;
-            // after extraction we immediately finish? No, we allow drilling to still go on until crash, but we have no active investment.
-            // but we still show depth rising for suspense, however no balance impact. We keep animation but no potential.
-            potentialSpan.innerText = "0";
-            // If player extracted, they are safe, but round still active for others? This is single player, round ends after crash anyway.
-            // But we keep drill active until cave-in, but no bet; no further action.
-        }
-        
-        // preset chips
-        document.querySelectorAll('.preset').forEach(btn => {
-            btn.addEventListener('click', () => {
-                let addVal = parseFloat(btn.getAttribute('data-add'));
-                let currentVal = parseFloat(drillInput.value);
-                let newVal = currentVal + addVal;
-                if (newVal > balance && !isDrilling) newVal = balance;
-                if (newVal < 1) newVal = 1;
-                drillInput.value = Math.floor(newVal);
-            });
+        animationId = requestAnimationFrame(animate);
+    }
+
+    // place bet
+    function placeBet() {
+        if (isGameActive) { statusSpan.innerText = "Round active! Cannot place new bet now."; return; }
+        let amount = parseFloat(betInput.value);
+        if (isNaN(amount) || amount <= 0) amount = 10;
+        if (amount < 10) { statusSpan.innerText = "Minimum deposit to bet is $10"; return; }
+        if (amount > balance) { statusSpan.innerText = "Insufficient wallet balance!"; return; }
+        balance -= amount;
+        currentBet = amount;
+        playSound('bet');
+        updateUI();
+        startRound();
+    }
+
+    function cashOut() {
+        if (!isGameActive || currentBet <= 0 || hasCashed) return;
+        if (currentMultiplier < 1.02) { statusSpan.innerText = "Multiplier too low!"; return; }
+        let winAmount = currentBet * currentMultiplier;
+        balance += winAmount;
+        playSound('cashout');
+        hasCashed = true;
+        statusSpan.innerText = `💰 Cashed out $${winAmount.toFixed(2)} at ${currentMultiplier.toFixed(2)}x!`;
+        currentBet = 0;
+        updateUI();
+        drawCurve();
+        cashoutBtn.disabled = true;
+    }
+
+    // referral system
+    let referralCode = "CRASH" + Math.floor(Math.random()*10000);
+    function showReferralModal() {
+        let modalDiv = document.createElement('div');
+        modalDiv.className = 'modal';
+        modalDiv.innerHTML = `
+            <div class="modal-card">
+                <h3>🎁 Refer & Earn</h3>
+                <p>Your code: <strong>${referralCode}</strong></p>
+                <div class="refer-code">Each referral gives you $50 bonus!<br>Withdraw only when refer bonus ≥ $1000</div>
+                <p>💰 Refer Bonus: $${referBonus.toFixed(2)} / $1000 needed</p>
+                <button id="simulateReferBtn" class="chip">+ Simulate Referral</button>
+                <br><br>
+                <button id="closeReferModal" class="menu-btn close-modal">Close</button>
+            </div>
+        `;
+        document.body.appendChild(modalDiv);
+        document.getElementById('simulateReferBtn')?.addEventListener('click', () => {
+            referBonus += 50;
+            referBonusSpan.innerText = referBonus.toFixed(2);
+            statusSpan.innerText = "🎉 Referral bonus +$50 added!";
+            modalDiv.remove();
         });
-        
-        drillInput.addEventListener('change', () => {
-            let v = parseFloat(drillInput.value);
-            if (isNaN(v)) drillInput.value = 20;
-            else if (v < 1) drillInput.value = 1;
-            else if (v > 5000) drillInput.value = 5000;
-            else drillInput.value = Math.floor(v);
+        document.getElementById('closeReferModal')?.addEventListener('click', () => modalDiv.remove());
+    }
+
+    // Withdraw / Deposit logic
+    function showBankModal() {
+        let modal = document.createElement('div');
+        modal.className = 'modal';
+        modal.innerHTML = `
+            <div class="modal-card">
+                <h3>🏦 Bank Actions</h3>
+                <p>Wallet: $${balance.toFixed(2)} | Refer bonus: $${referBonus.toFixed(2)}</p>
+                <input type="number" id="bankAmount" placeholder="Amount" style="margin:8px; padding:8px;">
+                <button id="depositBtn" class="chip">Deposit (min $10)</button>
+                <button id="withdrawBtn" class="chip">Withdraw (min $100)</button>
+                <p style="font-size:0.7rem;">Refer earnings withdraw only if ≥ $1000</p>
+                <button id="closeBank" class="menu-btn">Close</button>
+            </div>
+        `;
+        document.body.appendChild(modal);
+        let amountInp = document.getElementById('bankAmount');
+        document.getElementById('depositBtn')?.addEventListener('click', () => {
+            let amt = parseFloat(amountInp.value);
+            if(amt >= 10) { balance += amt; updateUI(); statusSpan.innerText = `Deposited $${amt}`; modal.remove();}
+            else alert("Minimum deposit $10");
         });
-        
-        startDrillBtn.addEventListener('click', startDrilling);
-        extractBtn.addEventListener('click', extractOre);
-        
-        function initGame() {
-            resizeCanvas();
-            drawDepthCurve();
-            updateUI();
-            lastExtractSpan.innerText = "—";
-            drillStatusSpan.innerHTML = "⭐ PLACE FUEL & START DRILL";
-            isDrilling = false;
-            currentInvestment = 0;
-            currentDepthMultiplier = 1.00;
-            hasExtracted = false;
-            depthMultiplierSpan.innerText = "1.00x";
-            caveInPoint = 1.88;
-            disasterHistory = [];
-            renderLog();
-        }
-        initGame();
-    })();
+        document.getElementById('withdrawBtn')?.addEventListener('click', () => {
+            let amt = parseFloat(amountInp.value);
+            if(amt < 100) alert("Minimum withdraw $100");
+            else if(amt <= balance) { balance -= amt; updateUI(); statusSpan.innerText = `Withdrew $${amt}`; modal.remove();}
+            else alert("Insufficient wallet balance");
+        });
+        document.getElementById('closeBank')?.addEventListener('click', () => modal.remove());
+    }
+    // extra turbo slow & brightness handlers
+    document.getElementById('brightnessToggle')?.addEventListener('click',()=>{ brightnessLevel = 1 - brightnessLevel; applyBrightness(); });
+    document.getElementById('soundToggle')?.addEventListener('click',(e)=>{ soundEnabled = !soundEnabled; e.target.style.background = soundEnabled ? "#5a3e2b" : "#1e1a2f"; });
+    document.getElementById('musicToggle')?.addEventListener('click',(e)=>{ musicEnabled = !musicEnabled; if(musicEnabled) initMusic(); else stopMusic(); e.target.style.background = musicEnabled ? "#5a3e2b" : "#1e1a2f"; });
+    document.getElementById('animationToggle')?.addEventListener('click',(e)=>{ animationEnabled = !animationEnabled; if(!animationEnabled) cancelAnimationFrame(animationId); else if(isGameActive)startRound(); e.target.style.background = animationEnabled ? "#5a3e2b" : "#1e1a2f"; });
+    document.getElementById('turboToggle')?.addEventListener('click',(e)=>{ turboMode = !turboMode; if(turboMode) slowMode=false; document.getElementById('slowModeBtn').style.background = slowMode?"#1e1a2f":"#1e1a2f"; e.target.style.background = turboMode?"#5a3e2b":"#1e1a2f"; });
+    document.getElementById('slowModeBtn')?.addEventListener('click',(e)=>{ slowMode = !slowMode; if(slowMode) turboMode=false; document.getElementById('turboToggle').style.background = turboMode?"#1e1a2f":"#1e1a2f"; e.target.style.background = slowMode?"#5a3e2b":"#1e1a2f"; });
+    document.getElementById('referBtn')?.addEventListener('click', showReferralModal);
+    document.querySelectorAll('.chip').forEach(btn => btn.addEventListener('click',(e)=>{ let add=parseInt(btn.dataset.chip); let newVal=parseFloat(betInput.value)+add; if(newVal>balance && !isGameActive)newVal=balance; betInput.value=Math.max(1,newVal); }));
+    placeBtn.addEventListener('click', placeBet);
+    cashoutBtn.addEventListener('click', cashOut);
+    // extra bank shortcut double click on wallet
+    walletSpan.parentElement?.addEventListener('dblclick', showBankModal);
+    function initCanvasResize() { canvas.width = Math.min(700, canvas.parentElement.clientWidth-20); canvas.height = canvas.width * 0.485; drawCurve(); }
+    window.addEventListener('resize', initCanvasResize);
+    initCanvasResize();
+    updateUI();
+    statusSpan.innerText = "⭐ Min deposit $10 | Withdraw $100 | Refer $50 (need 1000)";
 </script>
 </body>
 </html>
