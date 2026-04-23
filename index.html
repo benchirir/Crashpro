@@ -135,44 +135,28 @@
             z-index: 1;
         }
         
-        /* Big multiplier display - like Aviator/JetX */
+        /* Big multiplier display - reduced size */
         .multiplier-wrapper {
             text-align: center;
-            margin: 20px 0;
-            padding: 30px 20px;
-            background: rgba(0, 0, 0, 0.4);
-            border-radius: 60px;
+            margin: 10px 0 20px 0;
+            padding: 20px 20px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 50px;
         }
         #multiplierDisplay {
-            font-size: 6.5rem;
+            font-size: 4rem;
             font-weight: 900;
             background: linear-gradient(135deg, #FFE6B0, #FFB347);
             -webkit-background-clip: text;
             background-clip: text;
             color: transparent;
             font-family: 'Monaco', 'Courier New', monospace;
-            letter-spacing: 8px;
-            text-shadow: 0 0 40px rgba(255, 160, 0, 0.6);
+            letter-spacing: 4px;
+            text-shadow: 0 0 30px rgba(255, 160, 0, 0.4);
             transition: all 0.03s linear;
         }
         
-        /* Smooth progress bar similar to flight path */
-        .flight-path {
-            background: #1a1a2e;
-            border-radius: 40px;
-            height: 8px;
-            margin: 20px 0;
-            overflow: hidden;
-            box-shadow: inset 0 1px 4px rgba(0,0,0,0.5);
-        }
-        .flight-fill {
-            width: 0%;
-            height: 100%;
-            background: linear-gradient(90deg, #f0a34b, #ffcc55, #ffaa33);
-            border-radius: 40px;
-            transition: width 0.04s linear;
-            box-shadow: 0 0 8px #ffaa55;
-        }
+        /* REMOVED: flight-path / progress bar - completely deleted */
         
         .info-panel {
             display: flex;
@@ -258,7 +242,7 @@
         }
         .manual-step { background: #0f0c21; margin: 12px 0; padding: 12px; border-radius: 28px; text-align: left; }
         .close-modal { background: #7a5a2a; margin-top: 16px; padding: 8px 20px; border: none; border-radius: 40px; color: white; cursor: pointer; }
-        .rocket-icon { font-size: 2rem; display: inline-block; margin-right: 8px; filter: drop-shadow(0 0 6px orange); }
+        .rocket-icon { font-size: 1.8rem; display: inline-block; margin-right: 8px; filter: drop-shadow(0 0 6px orange); }
         @keyframes flyPulse {
             0%, 100% { transform: translateY(0px); }
             50% { transform: translateY(-3px); }
@@ -310,10 +294,6 @@
         <div id="multiplierDisplay">1.00x</div>
         <div id="statusMsg" style="font-size:0.85rem; margin-top: 12px; background:#00000080; display:inline-block; padding:6px 20px; border-radius:60px;">⚡ READY · PLACE BET</div>
     </div>
-    
-    <div class="flight-path">
-        <div class="flight-fill" id="flightFill"></div>
-    </div>
 
     <div class="info-panel">
         <div class="wallet-card"><div class="label">💰 WALLET</div><div class="value" id="walletBalance">1000.00</div></div>
@@ -348,7 +328,6 @@
     const placeBtn = document.getElementById('placeBetBtn');
     const cashoutBtn = document.getElementById('cashoutBtn');
     const historyDiv = document.getElementById('historyList');
-    const flightFill = document.getElementById('flightFill');
     const rocketIcon = document.getElementById('rocketIcon');
     const sidebar = document.getElementById('sidebar');
     const overlay = document.getElementById('sidebarOverlay');
@@ -376,7 +355,7 @@
     let darkMode = true;
     let musicInterval = null;
     
-    // Fixed TURBO speed like Aviator/JetX (fast smooth rise)
+    // Fixed TURBO speed like Aviator/JetX
     const TURBO_SPEED_FACTOR = 2.2;
     
     // Static leaderboards
@@ -440,7 +419,6 @@
         if (elapsed >= crashDelayMs) {
             currentMultiplier = crashPoint;
             multiplierDisplay.innerText = currentMultiplier.toFixed(2) + "x";
-            if (flightFill) flightFill.style.width = "100%";
             crashEvent();
             return;
         }
@@ -455,10 +433,6 @@
         currentMultiplier = parseFloat(mult.toFixed(4));
         
         multiplierDisplay.innerText = currentMultiplier.toFixed(2) + "x";
-        if (flightFill) {
-            let percent = Math.min(100, (elapsed / crashDelayMs) * 100);
-            flightFill.style.width = percent + "%";
-        }
         
         if (currentBet > 0 && !hasCashed) {
             potentialSpan.innerText = (currentBet * currentMultiplier).toFixed(2);
@@ -479,7 +453,6 @@
         
         currentMultiplier = 1.00;
         multiplierDisplay.innerText = "1.00x";
-        if (flightFill) flightFill.style.width = "0%";
         isGameActive = true;
         hasCashed = false;
         startTime = Date.now();
@@ -519,7 +492,6 @@
         hasCashed = false;
         currentMultiplier = 1;
         multiplierDisplay.innerText = "1.00x";
-        if (flightFill) flightFill.style.width = "0%";
         updateUI();
         
         setTimeout(() => {
@@ -695,4 +667,4 @@
     statusSpan.innerHTML = "✈️ LIKE AVIATOR/JETX · TURBO SPEED · CRASH ANYTIME!";
 </script>
 </body>
-    </html>
+            </html>
