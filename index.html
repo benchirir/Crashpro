@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>NEBULA CRASH | Turbo Speed & Static Leaderboards</title>
+    <title>CHAOS CRASH | Unpredictable · No Pattern · True Random</title>
     <style>
         * {
             user-select: none;
@@ -50,28 +50,10 @@
             box-shadow: 4px 0 20px rgba(0,0,0,0.5);
             overflow-y: auto;
         }
-        .sidebar.open {
-            left: 0;
-        }
-        .sidebar h3 {
-            color: #ffd966;
-            margin-top: 0;
-            border-bottom: 1px solid #ffb347;
-            padding-bottom: 8px;
-        }
-        .menu-hyphen {
-            font-size: 2rem;
-            cursor: pointer;
-            padding: 0 16px;
-            color: #ffd966;
-            font-weight: bold;
-            letter-spacing: 4px;
-            z-index: 101;
-            position: relative;
-        }
-        .sidebar-section {
-            margin: 20px 0;
-        }
+        .sidebar.open { left: 0; }
+        .sidebar h3 { color: #ffd966; margin-top: 0; border-bottom: 1px solid #ffb347; padding-bottom: 8px; }
+        .menu-hyphen { font-size: 2rem; cursor: pointer; padding: 0 16px; color: #ffd966; font-weight: bold; letter-spacing: 4px; z-index: 101; position: relative; }
+        .sidebar-section { margin: 20px 0; }
         .sidebar-btn {
             width: 100%;
             background: #1e1a3a;
@@ -82,15 +64,9 @@
             color: #ffdfa0;
             font-weight: bold;
             cursor: pointer;
-            transition: 0.08s linear;
         }
         .sidebar-btn:active { transform: scale(0.97); background: #3a2e70; }
-        .toggle-row {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin: 12px 0;
-        }
+        .toggle-row { display: flex; justify-content: space-between; align-items: center; margin: 12px 0; }
         .toggle-switch {
             width: 44px;
             height: 22px;
@@ -99,9 +75,7 @@
             cursor: pointer;
             position: relative;
         }
-        .toggle-switch.active {
-            background: #ffb347;
-        }
+        .toggle-switch.active { background: #ffb347; }
         .toggle-switch:after {
             content: "";
             width: 18px;
@@ -115,7 +89,6 @@
         }
         .toggle-switch.active:after { left: 23px; }
 
-        /* overlay when sidebar open */
         .sidebar-overlay {
             position: fixed;
             top: 0;
@@ -126,9 +99,7 @@
             z-index: 150;
             display: none;
         }
-        .sidebar-overlay.active {
-            display: block;
-        }
+        .sidebar-overlay.active { display: block; }
 
         /* main layout */
         .menu-bar {
@@ -218,15 +189,7 @@
         .btn:active { transform: translateY(2px); }
         .history-area { margin-top: 20px; background: #02000c80; border-radius: 40px; padding: 12px; }
         .history-list { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 6px; }
-
-        /* leaderboards */
-        .leaderboard-entry {
-            display: flex;
-            justify-content: space-between;
-            padding: 6px 0;
-            border-bottom: 1px solid #ffb34740;
-            font-size: 0.85rem;
-        }
+        .leaderboard-entry { display: flex; justify-content: space-between; padding: 6px 0; border-bottom: 1px solid #ffb34740; font-size: 0.85rem; }
         .highlight-50 { color: #ffaa33; font-weight: bold; text-shadow: 0 0 4px orange; }
         .modal {
             position: fixed;
@@ -252,20 +215,19 @@
         }
         .manual-step { background: #0f0c21; margin: 12px 0; padding: 12px; border-radius: 28px; text-align: left; }
         .close-modal { background: #7a5a2a; margin-top: 16px; padding: 8px 20px; border: none; border-radius: 40px; color: white; cursor: pointer; }
+        .warning-badge { background: #ff4444aa; padding: 4px 12px; border-radius: 60px; font-size: 0.7rem; display: inline-block; margin-left: 8px; }
     </style>
 </head>
 <body>
 
-<!-- overlay for closing sidebar -->
 <div id="sidebarOverlay" class="sidebar-overlay"></div>
 
 <div class="menu-bar">
     <div class="menu-hyphen" id="menuHyphen">☰</div>
-    <div class="logo">⚡ NEBULA CRASH · TURBO</div>
+    <div class="logo">🌀 CHAOS CRASH · NO PATTERN</div>
     <div style="width:40px;"></div>
 </div>
 
-<!-- Sidebar -->
 <div class="sidebar" id="sidebar">
     <h3>⚙️ SETTINGS & MENU</h3>
     <div class="sidebar-section">
@@ -286,16 +248,16 @@
         <div id="weeklyLeaders"></div>
         <h3>📅 MONTHLY BEST</h3>
         <div id="monthlyLeaders"></div>
-        <h3>⚡ DAILY HIGH (50x+ SPIKES)</h3>
+        <h3>⚡ DAILY HIGH</h3>
         <div id="dailyLeaders"></div>
-        <p style="font-size:10px; color:#aaa;">*Static leaderboards · 50x+ occurs 3x daily</p>
+        <p style="font-size:10px; color:#aaa;">*Static leaderboards · True random crash timing</p>
     </div>
 </div>
 
 <div class="game-container">
     <div style="text-align:center">
         <div id="multiplierDisplay">1.00x</div>
-        <div id="statusMsg" style="font-size:0.85rem; background:#00000060; display:inline-block; padding:4px 16px; border-radius:60px;">⚡ TURBO MODE ACTIVE</div>
+        <div id="statusMsg" style="font-size:0.85rem; background:#00000060; display:inline-block; padding:4px 16px; border-radius:60px;">⚠️ UNPREDICTABLE · CRASH ANYTIME</div>
     </div>
     <canvas id="crashCanvas" width="700" height="340" style="width:100%; aspect-ratio:700/340"></canvas>
 
@@ -311,7 +273,7 @@
     </div>
 
     <div class="action-buttons">
-        <button class="btn btn-bet" id="placeBetBtn">🚀 PLACE BET</button>
+        <button class="btn btn-bet" id="placeBetBtn">🌀 PLACE BET</button>
         <button class="btn btn-cashout" id="cashoutBtn" disabled>💎 CASH OUT</button>
     </div>
 
@@ -347,9 +309,13 @@
     let currentMultiplier = 1.00;
     let crashPoint = 1.00;
     let animationId = null;
-    let roundStart = 0;
     let crashHistory = [];
-
+    
+    // TIMING VARIABLES FOR UNPREDICTABLE CRASH
+    let roundStartTime = 0;
+    let crashTimeoutId = null;      // setTimeout for random crash
+    let animationFrameId = null;
+    
     // Settings
     let soundEnabled = true;
     let musicEnabled = false;
@@ -357,14 +323,7 @@
     let darkMode = true;
     let musicInterval = null;
     
-    // FIXED TURBO SPEED
-    const TURBO_SPEED = 2.1;
-
-    // Counter for 50x+ spikes today (ensures 3 times per day)
-    let fiftyXSpikesToday = 0;
-    let lastSpikeDate = new Date().toDateString();
-    
-    // ========== STATIC FAKE LEADERBOARDS (never change) ==========
+    // Static leaderboards (never change)
     const staticWeekly = [
         { name: "🚀 ASTRO_CRUSHER", mult: "87.3x" },
         { name: "💎 NEBULA_WHALE", mult: "64.8x" },
@@ -388,90 +347,110 @@
     ];
     
     function renderStaticLeaderboards() {
-        // Weekly
         document.getElementById('weeklyLeaders').innerHTML = staticWeekly.map(w => 
             `<div class="leaderboard-entry"><span>🏆 ${w.name}</span><span class="${parseFloat(w.mult)>=50?'highlight-50':''}">${w.mult}</span></div>`
         ).join('');
-        // Monthly
         document.getElementById('monthlyLeaders').innerHTML = staticMonthly.map(m => 
             `<div class="leaderboard-entry"><span>🌟 ${m.name}</span><span class="${parseFloat(m.mult)>=50?'highlight-50':''}">${m.mult}</span></div>`
         ).join('');
-        // Daily
         document.getElementById('dailyLeaders').innerHTML = staticDaily.map(d => 
             `<div class="leaderboard-entry"><span>⚡ ${d.name}</span><span class="${d.highlight || parseFloat(d.mult)>=50?'highlight-50':''}">${d.mult}</span></div>`
         ).join('');
     }
     
-    // Highly unpredictable crash generator that can reach 50x+ three times a day
-    function generateUnpredictableCrash() {
-        const today = new Date().toDateString();
-        if (lastSpikeDate !== today) {
-            fiftyXSpikesToday = 0;
-            lastSpikeDate = today;
-        }
-        
-        let r = Math.random();
-        let crash;
-        
-        let forceHighSpike = false;
-        if (fiftyXSpikesToday < 3 && Math.random() < 0.12) {
-            forceHighSpike = true;
-        }
-        
-        if (forceHighSpike) {
-            crash = 50 + Math.random() * 200;
-            fiftyXSpikesToday++;
+    // ========== TRULY UNPREDICTABLE CRASH GENERATION ==========
+    // The crash can happen ANYTIME between 0.8 seconds and 25 seconds
+    // The multiplier can hover, stall, or spike randomly
+    function generateRandomCrashTime() {
+        // Random crash delay between 0.8s and 25s - completely unpredictable
+        // Sometimes crashes very early (0.8s), sometimes hovers for a long time
+        let randomType = Math.random();
+        if (randomType < 0.3) {
+            // Early crash: 0.8s - 3s
+            return 0.8 + Math.random() * 2.2;
+        } else if (randomType < 0.6) {
+            // Mid crash: 3s - 8s
+            return 3 + Math.random() * 5;
+        } else if (randomType < 0.85) {
+            // Late crash: 8s - 16s
+            return 8 + Math.random() * 8;
         } else {
-            if (r < 0.55) {
-                crash = 1.00 + Math.random() * 1.2;
-            } else if (r < 0.8) {
-                crash = 2.2 + Math.random() * 3.8;
-            } else if (r < 0.94) {
-                crash = 6 + Math.random() * 19;
-            } else {
-                crash = 25 + Math.random() * 55;
-                if (crash >= 50 && fiftyXSpikesToday < 3) {
-                    fiftyXSpikesToday++;
-                }
-            }
+            // Extreme hover: 16s - 25s (makes players think it's safe)
+            return 16 + Math.random() * 9;
         }
-        crash = Math.min(350, Math.max(1.01, crash));
-        return parseFloat(crash.toFixed(2));
     }
     
-    function drawCurve() {
+    // Generate the final multiplier value based on crash time and random growth
+    // This makes the multiplier path also unpredictable
+    function generateMultiplierAtTime(elapsedSeconds, maxDuration) {
+        // Non-linear, unpredictable easing with random wobble
+        let t = Math.min(1, elapsedSeconds / maxDuration);
+        // Random base curve - sometimes fast, sometimes slow, sometimes plateau
+        let curvePower = 0.8 + Math.random() * 1.2; // between 0.8 and 2.0
+        let mult = 1 + (crashPoint - 1) * Math.pow(t, curvePower);
+        // Add small random "turbulence" to make it unpredictable mid-flight
+        let turbulence = Math.sin(elapsedSeconds * 3) * 0.03 * Math.min(1, mult);
+        mult = Math.max(1, mult + turbulence);
+        return parseFloat(mult.toFixed(4));
+    }
+    
+    // Generate crash multiplier value (final payout) - mostly low to medium for house edge
+    function generateCrashMultiplier() {
+        let r = Math.random();
+        if (r < 0.55) return 1.0 + Math.random() * 1.2;      // 1.0x - 2.2x
+        else if (r < 0.78) return 2.2 + Math.random() * 2.8;  // 2.2x - 5.0x
+        else if (r < 0.92) return 5 + Math.random() * 10;     // 5x - 15x
+        else if (r < 0.98) return 15 + Math.random() * 35;    // 15x - 50x
+        else return 50 + Math.random() * 100;                 // 50x - 150x (rare)
+    }
+    
+    function drawCurveWithProgress(currentMult, targetMult, elapsed, maxDur) {
         if (!ctx) return;
         ctx.clearRect(0, 0, canvas.width, canvas.height);
         ctx.fillStyle = '#010106';
         ctx.fillRect(0, 0, canvas.width, canvas.height);
-        let maxMult = (isGameActive && currentMultiplier) ? Math.max(currentMultiplier, crashPoint) : (crashPoint || 2);
-        if (maxMult < 1.2) maxMult = 3;
+        
+        let maxDisplay = Math.max(targetMult, currentMult, 2.5);
         ctx.beginPath();
-        for (let x=0; x<=canvas.width; x+=5) {
-            let t = x/canvas.width;
-            let mult = 1 + (maxMult-1) * (1 - Math.pow(1-t, 1.65));
-            let y = canvas.height - (mult/maxMult)*canvas.height;
-            if(x===0) ctx.moveTo(x,y); else ctx.lineTo(x,y);
+        // Draw expected curve based on current progress
+        for (let x = 0; x <= canvas.width; x += 5) {
+            let t = x / canvas.width;
+            let curvePower = 1.2;
+            let mult = 1 + (targetMult - 1) * Math.pow(t, curvePower);
+            let y = canvas.height - (Math.min(mult, maxDisplay) / maxDisplay) * canvas.height;
+            if (x === 0) ctx.moveTo(x, y);
+            else ctx.lineTo(x, y);
         }
         ctx.strokeStyle = '#f0a34b';
         ctx.lineWidth = 3;
         ctx.stroke();
-        if (isGameActive && currentMultiplier>1 && animationsEnabled) {
-            let tPos = Math.min(0.99, (currentMultiplier-1)/(maxMult-1));
+        
+        // Draw live multiplier dot
+        if (isGameActive && currentMult > 1 && animationsEnabled) {
+            let tPos = Math.min(0.99, (currentMult - 1) / (Math.max(targetMult, currentMult) - 1));
             let dotX = canvas.width * tPos;
-            let multY = 1 + (maxMult-1) * (1 - Math.pow(1-tPos, 1.65));
-            let dotY = canvas.height - (multY/maxMult)*canvas.height;
+            let multY = 1 + (targetMult - 1) * Math.pow(tPos, 1.2);
+            let dotY = canvas.height - (Math.min(multY, maxDisplay) / maxDisplay) * canvas.height;
             ctx.fillStyle = '#ffcc55';
-            ctx.beginPath(); ctx.arc(dotX, dotY, 8, 0, Math.PI*2); ctx.fill();
+            ctx.beginPath();
+            ctx.arc(dotX, dotY, 9, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.fillStyle = 'white';
+            ctx.beginPath();
+            ctx.arc(dotX, dotY, 4, 0, Math.PI * 2);
+            ctx.fill();
         }
     }
     
     function updateUI() {
         walletSpan.innerText = balance.toFixed(2);
         referBonusSpan.innerText = referBonus.toFixed(2);
-        if (isGameActive && currentBet>0 && !hasCashed) potentialSpan.innerText = (currentBet*currentMultiplier).toFixed(2);
-        else potentialSpan.innerText = "0.00";
-        cashoutBtn.disabled = !(isGameActive && currentBet>0 && !hasCashed && currentMultiplier>1.02);
+        if (isGameActive && currentBet > 0 && !hasCashed) {
+            potentialSpan.innerText = (currentBet * currentMultiplier).toFixed(2);
+        } else {
+            potentialSpan.innerText = "0.00";
+        }
+        cashoutBtn.disabled = !(isGameActive && currentBet > 0 && !hasCashed && currentMultiplier > 1.02);
     }
     
     function playSound(type) {
@@ -487,7 +466,6 @@
             if (type === 'cashout') { osc.frequency.value = 880; gain.gain.value = 0.15; osc.start(); gain.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime+0.7); osc.stop(audioCtx.currentTime+0.6); }
             else if (type === 'crash') { osc.frequency.value = 180; gain.gain.value = 0.2; osc.start(); gain.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime+0.9); osc.stop(audioCtx.currentTime+0.8); }
             else if (type === 'bet') { osc.frequency.value = 660; gain.gain.value = 0.1; osc.start(); osc.stop(audioCtx.currentTime+0.2); }
-            else if (type === 'spike') { osc.frequency.value = 1200; gain.gain.value = 0.25; osc.start(); gain.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime+1.2); osc.stop(audioCtx.currentTime+1); }
             setTimeout(() => audioCtx.close(), 1000);
         } catch(e) {}
     }
@@ -521,170 +499,206 @@
     
     function crashEvent() {
         if (!isGameActive) return;
-        if (animationId) cancelAnimationFrame(animationId);
+        if (crashTimeoutId) clearTimeout(crashTimeoutId);
+        if (animationFrameId) cancelAnimationFrame(animationFrameId);
         isGameActive = false;
-        if (currentBet>0 && !hasCashed) { 
-            playSound('crash'); 
-            statusSpan.innerText = `💥 CRASHED at ${crashPoint.toFixed(2)}x · Lost $${currentBet.toFixed(2)}`;
-            currentBet=0; 
+        
+        if (currentBet > 0 && !hasCashed) {
+            playSound('crash');
+            statusSpan.innerText = `💥 CRASHED at ${currentMultiplier.toFixed(2)}x · Lost $${currentBet.toFixed(2)}`;
+            currentBet = 0;
+        } else if (hasCashed) {
+            statusSpan.innerText = `✅ Cashed out at ${currentMultiplier.toFixed(2)}x!`;
+        } else {
+            statusSpan.innerText = `💀 CRASH at ${currentMultiplier.toFixed(2)}x`;
         }
-        else if (hasCashed) statusSpan.innerText = `✅ Cashed out at ${currentMultiplier.toFixed(2)}x!`;
-        else statusSpan.innerText = `💀 CRASH ${crashPoint.toFixed(2)}x`;
         
-        if (crashPoint >= 50) playSound('spike');
+        crashHistory.unshift(currentMultiplier.toFixed(2) + 'x');
+        if (crashHistory.length > 12) crashHistory.pop();
+        historyDiv.innerHTML = crashHistory.map(h => `<span style="background:#1e1a3a; padding:4px 14px; border-radius:30px; ${parseFloat(h)>=50?'color:#ffaa33; font-weight:bold;':''}">${h}</span>`).join('');
         
-        crashHistory.unshift(crashPoint.toFixed(2)+'x');
-        if(crashHistory.length>12) crashHistory.pop();
-        historyDiv.innerHTML = crashHistory.map(h=>`<span style="background:#1e1a3a; padding:4px 14px; border-radius:30px; ${parseFloat(h)>=50?'color:#ffaa33; font-weight:bold;':''}">${h}</span>`).join('');
-        currentBet=0; hasCashed=false; currentMultiplier=1;
-        multiplierDisplay.innerText="1.00x";
-        updateUI(); drawCurve();
-        setTimeout(()=>{ if(!isGameActive) statusSpan.innerText = "⚡ TURBO MODE · Place bet to start"; },1200);
+        currentBet = 0;
+        hasCashed = false;
+        currentMultiplier = 1;
+        multiplierDisplay.innerText = "1.00x";
+        updateUI();
+        drawCurveWithProgress(1, 2, 0, 1);
+        
+        setTimeout(() => {
+            if (!isGameActive) statusSpan.innerText = "🌀 UNPREDICTABLE · Crash anytime! Place bet";
+        }, 1500);
     }
     
     function startRound() {
         if (isGameActive) return;
-        if (currentBet<=0) { statusSpan.innerText = "Place a bet first!"; return; }
-        crashPoint = generateUnpredictableCrash();
-        currentMultiplier=1; multiplierDisplay.innerText="1.00x";
-        isGameActive=true; hasCashed=false; roundStart=performance.now();
-        statusSpan.innerText = `🚀 TURBO FLYING! Cashout before ${crashPoint.toFixed(2)}x`;
-        updateUI(); drawCurve();
-        if(animationId) cancelAnimationFrame(animationId);
+        if (currentBet <= 0) {
+            statusSpan.innerText = "Place a bet first!";
+            return;
+        }
         
-        function animate(now) {
-            if(!isGameActive) return;
-            let elapsed = (now-roundStart)/1000;
-            let timeRatio = elapsed * TURBO_SPEED;
-            let maxDur = 10;
-            let t = Math.min(1, timeRatio / maxDur);
-            let mult = 1 + (crashPoint - 1) * Math.pow(t, 1.35);
-            if(mult >= crashPoint || timeRatio >= maxDur) {
+        // Generate random crash multiplier and random crash delay
+        crashPoint = generateCrashMultiplier();
+        let crashDelaySeconds = generateRandomCrashTime();
+        
+        currentMultiplier = 1.00;
+        multiplierDisplay.innerText = "1.00x";
+        isGameActive = true;
+        hasCashed = false;
+        roundStartTime = performance.now();
+        
+        statusSpan.innerText = `🌀 FLYING · CRASH in ??? sec · Max ${crashPoint.toFixed(2)}x possible`;
+        updateUI();
+        
+        if (animationFrameId) cancelAnimationFrame(animationFrameId);
+        if (crashTimeoutId) clearTimeout(crashTimeoutId);
+        
+        // Animation loop - multiplier rises unpredictably
+        function animateMultiply(now) {
+            if (!isGameActive) return;
+            let elapsed = (now - roundStartTime) / 1000;
+            
+            if (elapsed >= crashDelaySeconds) {
+                // CRASH!
                 currentMultiplier = crashPoint;
-                multiplierDisplay.innerText = crashPoint.toFixed(2)+"x";
+                multiplierDisplay.innerText = crashPoint.toFixed(2) + "x";
                 crashEvent();
                 return;
             }
-            currentMultiplier = parseFloat(mult.toFixed(4));
-            multiplierDisplay.innerText = currentMultiplier.toFixed(2)+"x";
-            if(currentBet>0 && !hasCashed) updateUI();
-            if(animationsEnabled) drawCurve();
-            animationId = requestAnimationFrame(animate);
+            
+            // Calculate current multiplier based on elapsed time and random curve
+            let t = elapsed / crashDelaySeconds;
+            let curvePower = 0.9 + Math.random() * 1.1;
+            let mult = 1 + (crashPoint - 1) * Math.pow(t, curvePower);
+            // Add random turbulence to make it jump unpredictably
+            let turbulence = Math.sin(elapsed * 2.5) * 0.04 * mult;
+            mult = Math.max(1.01, mult + turbulence);
+            currentMultiplier = parseFloat(Math.min(mult, crashPoint).toFixed(4));
+            multiplierDisplay.innerText = currentMultiplier.toFixed(2) + "x";
+            
+            if (currentBet > 0 && !hasCashed) updateUI();
+            if (animationsEnabled) drawCurveWithProgress(currentMultiplier, crashPoint, elapsed, crashDelaySeconds);
+            
+            animationFrameId = requestAnimationFrame(animateMultiply);
         }
-        animationId = requestAnimationFrame(animate);
+        
+        animationFrameId = requestAnimationFrame(animateMultiply);
     }
     
     function placeBet() {
-        if(isGameActive){ statusSpan.innerText="Round active! Wait for crash."; return; }
-        let amount=parseFloat(betInput.value);
-        if(isNaN(amount)||amount<10){ statusSpan.innerText="Min bet $10"; return; }
-        if(amount>balance){ statusSpan.innerText="Insufficient balance!"; return; }
-        balance-=amount; currentBet=amount;
-        playSound('bet'); updateUI(); startRound();
+        if (isGameActive) {
+            statusSpan.innerText = "Round active! Wait for crash or cashout.";
+            return;
+        }
+        let amount = parseFloat(betInput.value);
+        if (isNaN(amount) || amount < 10) {
+            statusSpan.innerText = "Min bet $10";
+            return;
+        }
+        if (amount > balance) {
+            statusSpan.innerText = "Insufficient balance!";
+            return;
+        }
+        balance -= amount;
+        currentBet = amount;
+        playSound('bet');
+        updateUI();
+        startRound();
     }
     
     function cashOut() {
-        if(!isGameActive || currentBet<=0 || hasCashed) return;
-        if(currentMultiplier<1.02){ statusSpan.innerText="Multiplier too low!"; return; }
-        let win=currentBet*currentMultiplier;
-        balance+=win; playSound('cashout');
-        hasCashed=true; statusSpan.innerText=`💰 CASHED $${win.toFixed(2)} at ${currentMultiplier.toFixed(2)}x!`;
-        currentBet=0; updateUI(); drawCurve(); cashoutBtn.disabled=true;
+        if (!isGameActive || currentBet <= 0 || hasCashed) return;
+        if (currentMultiplier < 1.02) {
+            statusSpan.innerText = "Multiplier too low! Wait a moment.";
+            return;
+        }
+        let winAmount = currentBet * currentMultiplier;
+        balance += winAmount;
+        playSound('cashout');
+        hasCashed = true;
+        statusSpan.innerText = `💰 CASHED OUT $${winAmount.toFixed(2)} at ${currentMultiplier.toFixed(2)}x!`;
+        currentBet = 0;
+        updateUI();
+        drawCurveWithProgress(currentMultiplier, crashPoint, 0, 1);
+        cashoutBtn.disabled = true;
     }
     
-    // Banking & Profile
+    // Banking & Profile functions
     function showDeposit() {
         let amt = parseFloat(prompt("💰 Deposit amount (min $10):", "50"));
-        if(amt>=10) { balance+=amt; updateUI(); statusSpan.innerText=`Deposited $${amt}`; }
+        if (amt >= 10) { balance += amt; updateUI(); statusSpan.innerText = `Deposited $${amt}`; }
         else alert("Minimum deposit $10");
     }
     function showWithdraw() {
         let amt = parseFloat(prompt("💸 Withdraw amount (min $100 from wallet):", "100"));
-        if(amt<100) alert("Minimum withdraw $100");
-        else if(amt<=balance) { balance-=amt; updateUI(); statusSpan.innerText=`Withdrew $${amt}`; }
+        if (amt < 100) alert("Minimum withdraw $100");
+        else if (amt <= balance) { balance -= amt; updateUI(); statusSpan.innerText = `Withdrew $${amt}`; }
         else alert("Insufficient wallet balance");
     }
     function showProfile() {
-        alert(`👤 USER: NEBULA_TRADER\n💰 Wallet: $${balance.toFixed(2)}\n🎁 Refer Bonus: $${referBonus.toFixed(2)} (need $1000 to withdraw)\n📊 Total rounds: ${crashHistory.length}\n🔥 Today's 50x+ spikes: ${fiftyXSpikesToday}/3`);
+        alert(`👤 USER: CHAOS_TRADER\n💰 Wallet: $${balance.toFixed(2)}\n🎁 Refer Bonus: $${referBonus.toFixed(2)} (need $1000)\n📊 Total rounds: ${crashHistory.length}\n⚠️ Game is COMPLETELY UNPREDICTABLE!`);
     }
     function showManual() {
-        let modal=document.createElement('div'); modal.className='modal';
-        modal.innerHTML=`<div class="modal-card"><h2>📘 CRASH MANUAL (TURBO)</h2>
-        <div class="manual-step"><strong>⚡ TURBO SPEED:</strong> Multiplier rises 2.1x faster! High risk, high reward.</div>
-        <div class="manual-step"><strong>1.</strong> Deposit min $10 (Wallet).<br><strong>2.</strong> Enter BET (min $10) & click PLACE BET.<br><strong>3.</strong> Multiplier rises quickly. Click CASH OUT before CRASH → WIN = BET x MULTIPLIER.<br><strong>4.</strong> If CRASH hits before cashout → you LOSE the bet.<br><strong>5.</strong> <span class="highlight-50">50x+ SPIKES happen 3 times per day!</span> Extremely unpredictable.<br><strong>6.</strong> Refer friends → $50 each (needs $1000 refer bonus to withdraw).<br><strong>7.</strong> Withdraw min $100 from wallet.<br><strong>8.</strong> Open ☰ menu for Dark/Light, Sound, Music & Animations.<br><strong>9.</strong> Click outside menu or press ESC to close sidebar.</div>
-        <button id="closeManualBtn" class="close-modal">Got it</button></div>`;
+        let modal = document.createElement('div'); modal.className = 'modal';
+        modal.innerHTML = `<div class="modal-card"><h2>📘 CHAOS CRASH MANUAL</h2>
+        <div class="manual-step"><strong>⚠️ KEY FEATURE:</strong> This game is <span style="color:#ff6666">COMPLETELY UNPREDICTABLE</span>. Crash can happen at ANY moment — early, mid-flight, or after hovering.<br>❌ NO PATTERN to study!</div>
+        <div class="manual-step"><strong>1.</strong> Deposit min $10.<br><strong>2.</strong> Enter BET (min $10) & click PLACE BET.<br><strong>3.</strong> Multiplier rises with random speed & turbulence.<br><strong>4.</strong> Click CASH OUT before random CRASH → WIN = BET x MULTIPLIER.<br><strong>5.</strong> If CRASH hits → you LOSE the bet.<br><strong>6.</strong> Crash timing is random (0.8s - 25s). You CANNOT predict when!</div>
+        <div class="manual-step"><strong>🎯 TIP:</strong> Don't wait for the top — crash comes without warning! Cashout early or risk everything.</div>
+        <button id="closeManualBtn" class="close-modal">Got it, it's chaos!</button></div>`;
         document.body.appendChild(modal);
-        document.getElementById('closeManualBtn')?.addEventListener('click',()=>modal.remove());
+        document.getElementById('closeManualBtn')?.addEventListener('click', () => modal.remove());
     }
     function showReferral() {
-        let code="NEBULA"+Math.floor(Math.random()*9999);
-        let modal=document.createElement('div'); modal.className='modal';
-        modal.innerHTML=`<div class="modal-card"><h3>🎁 REFER & EARN $50</h3><p>Your code: <strong>${code}</strong></p><p>Each referral gives $50 bonus! Refer bonus needs $1000 to withdraw.</p><p>Current refer bonus: $${referBonus.toFixed(2)}</p><button id="simulateRefer" class="chip">Simulate Referral +$50</button><br><button id="closeRef" class="close-modal">Close</button></div>`;
+        let code = "CHAOS" + Math.floor(Math.random() * 9999);
+        let modal = document.createElement('div'); modal.className = 'modal';
+        modal.innerHTML = `<div class="modal-card"><h3>🎁 REFER & EARN $50</h3><p>Your code: <strong>${code}</strong></p><p>Each referral gives $50 bonus! Need $1000 refer bonus to withdraw.</p><p>Current: $${referBonus.toFixed(2)}</p><button id="simulateRefer" class="chip">Simulate Referral +$50</button><br><button id="closeRef" class="close-modal">Close</button></div>`;
         document.body.appendChild(modal);
-        document.getElementById('simulateRefer')?.addEventListener('click',()=>{ referBonus+=50; referBonusSpan.innerText=referBonus.toFixed(2); statusSpan.innerText="+$50 Refer bonus!"; modal.remove(); });
-        document.getElementById('closeRef')?.addEventListener('click',()=>modal.remove());
+        document.getElementById('simulateRefer')?.addEventListener('click', () => { referBonus += 50; referBonusSpan.innerText = referBonus.toFixed(2); statusSpan.innerText = "+$50 Refer bonus!"; modal.remove(); });
+        document.getElementById('closeRef')?.addEventListener('click', () => modal.remove());
     }
     
-    // ========== SIDEBAR CLOSE FUNCTIONS ==========
-    function closeSidebar() {
-        sidebar.classList.remove('open');
-        overlay.classList.remove('active');
-    }
-    function openSidebar() {
-        sidebar.classList.add('open');
-        overlay.classList.add('active');
-    }
-    // Click on overlay closes sidebar
+    // Sidebar functions
+    function closeSidebar() { sidebar.classList.remove('open'); overlay.classList.remove('active'); }
+    function openSidebar() { sidebar.classList.add('open'); overlay.classList.add('active'); }
     overlay.addEventListener('click', closeSidebar);
-    // Click on menu hyphen toggles
-    menuHyphen.addEventListener('click', (e) => {
-        e.stopPropagation();
-        if (sidebar.classList.contains('open')) closeSidebar();
-        else openSidebar();
-    });
-    // Close sidebar on Escape key
-    document.addEventListener('keydown', (e) => {
-        if (e.key === 'Escape' && sidebar.classList.contains('open')) closeSidebar();
-    });
-    // Prevent clicks inside sidebar from closing it
+    menuHyphen.addEventListener('click', (e) => { e.stopPropagation(); if (sidebar.classList.contains('open')) closeSidebar(); else openSidebar(); });
+    document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && sidebar.classList.contains('open')) closeSidebar(); });
     sidebar.addEventListener('click', (e) => e.stopPropagation());
     
-    // Sidebar toggles
     function updateSidebarToggles() {
         document.querySelectorAll('.toggle-switch').forEach(t => t.classList.remove('active'));
-        if(soundEnabled) document.getElementById('soundToggleSide')?.classList.add('active');
-        if(musicEnabled) document.getElementById('musicToggleSide')?.classList.add('active');
-        if(animationsEnabled) document.getElementById('animToggleSide')?.classList.add('active');
-        if(!darkMode) document.getElementById('darkLightToggle')?.classList.add('active');
-        else if(darkMode && document.getElementById('darkLightToggle')) document.getElementById('darkLightToggle').classList.remove('active');
+        if (soundEnabled) document.getElementById('soundToggleSide')?.classList.add('active');
+        if (musicEnabled) document.getElementById('musicToggleSide')?.classList.add('active');
+        if (animationsEnabled) document.getElementById('animToggleSide')?.classList.add('active');
+        if (!darkMode) document.getElementById('darkLightToggle')?.classList.add('active');
     }
-    function applyDarkLight() {
-        if(darkMode) document.body.classList.remove('light-mode');
-        else document.body.classList.add('light-mode');
-    }
-    document.getElementById('darkLightToggle')?.addEventListener('click',()=>{ darkMode=!darkMode; applyDarkLight(); updateSidebarToggles(); });
-    document.getElementById('soundToggleSide')?.addEventListener('click',()=>{ soundEnabled=!soundEnabled; updateSidebarToggles(); });
-    document.getElementById('musicToggleSide')?.addEventListener('click',()=>{ musicEnabled=!musicEnabled; toggleMusic(); updateSidebarToggles(); });
-    document.getElementById('animToggleSide')?.addEventListener('click',()=>{ animationsEnabled=!animationsEnabled; if(!animationsEnabled && animationId) cancelAnimationFrame(animationId); if(isGameActive && animationsEnabled) startRound(); drawCurve(); updateSidebarToggles(); });
+    function applyDarkLight() { if (darkMode) document.body.classList.remove('light-mode'); else document.body.classList.add('light-mode'); }
+    document.getElementById('darkLightToggle')?.addEventListener('click', () => { darkMode = !darkMode; applyDarkLight(); updateSidebarToggles(); });
+    document.getElementById('soundToggleSide')?.addEventListener('click', () => { soundEnabled = !soundEnabled; updateSidebarToggles(); });
+    document.getElementById('musicToggleSide')?.addEventListener('click', () => { musicEnabled = !musicEnabled; toggleMusic(); updateSidebarToggles(); });
+    document.getElementById('animToggleSide')?.addEventListener('click', () => { animationsEnabled = !animationsEnabled; if (!animationsEnabled && animationFrameId) cancelAnimationFrame(animationFrameId); drawCurveWithProgress(currentMultiplier, crashPoint, 0, 1); updateSidebarToggles(); });
+    document.getElementById('profileBtn')?.addEventListener('click', showProfile);
+    document.getElementById('depositBtnSide')?.addEventListener('click', showDeposit);
+    document.getElementById('withdrawBtnSide')?.addEventListener('click', showWithdraw);
+    document.getElementById('manualBtnSide')?.addEventListener('click', showManual);
+    document.getElementById('referBtnSide')?.addEventListener('click', showReferral);
     
-    document.getElementById('profileBtn')?.addEventListener('click',showProfile);
-    document.getElementById('depositBtnSide')?.addEventListener('click',showDeposit);
-    document.getElementById('withdrawBtnSide')?.addEventListener('click',showWithdraw);
-    document.getElementById('manualBtnSide')?.addEventListener('click',showManual);
-    document.getElementById('referBtnSide')?.addEventListener('click',showReferral);
+    document.querySelectorAll('.chip').forEach(btn => btn.addEventListener('click', (e) => {
+        let add = parseInt(btn.dataset.chip);
+        let newVal = parseFloat(betInput.value) + add;
+        if (newVal > balance && !isGameActive) newVal = balance;
+        betInput.value = Math.max(1, newVal.toFixed(2));
+    }));
+    placeBtn.addEventListener('click', placeBet);
+    cashoutBtn.addEventListener('click', cashOut);
     
-    document.querySelectorAll('.chip').forEach(btn=>btn.addEventListener('click',(e)=>{ let add=parseInt(btn.dataset.chip); let newVal=parseFloat(betInput.value)+add; if(newVal>balance && !isGameActive) newVal=balance; betInput.value=Math.max(1,newVal.toFixed(2)); }));
-    placeBtn.addEventListener('click',placeBet);
-    cashoutBtn.addEventListener('click',cashOut);
-    
-    function resizeCanvas(){ canvas.width=Math.min(700, canvas.parentElement.clientWidth-20); canvas.height=canvas.width*0.485; drawCurve(); }
-    window.addEventListener('resize',resizeCanvas);
+    function resizeCanvas() { canvas.width = Math.min(700, canvas.parentElement.clientWidth - 20); canvas.height = canvas.width * 0.485; drawCurveWithProgress(1, 2, 0, 1); }
+    window.addEventListener('resize', resizeCanvas);
     resizeCanvas();
     updateUI();
     applyDarkLight();
     updateSidebarToggles();
-    renderStaticLeaderboards();  // static leaderboards, never change
-    statusSpan.innerText="⚡ TURBO SPEED · 50x+ spikes 3x daily!";
+    renderStaticLeaderboards();
+    statusSpan.innerText = "⚠️ TRULY RANDOM · Crash ANYTIME · No pattern!";
 </script>
 </body>
-</html>
+    </html>
