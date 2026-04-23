@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>NEBULA CRASH | High Risk Multiplier Game</title>
+    <title>NEBULA CRASH | Live Leaderboards & Sidebar</title>
     <style>
         * {
             user-select: none;
@@ -17,74 +17,134 @@
             font-family: 'Segoe UI', 'Poppins', 'Inter', system-ui, sans-serif;
             margin: 0;
             padding: 0;
+            transition: filter 0.2s, background 0.2s;
         }
 
-        /* top menu bar */
-        .menu-bar {
-            background: rgba(0, 0, 0, 0.65);
+        /* dark/light mode classes */
+        body.light-mode {
+            background: #f0f2f5;
+            color: #1a1a2e;
+        }
+        body.light-mode .game-container, body.light-mode .menu-bar, body.light-mode .sidebar {
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(12px);
+            border-color: #ffb347;
+            color: #1a1a2e;
+        }
+        body.light-mode .value, body.light-mode #multiplierDisplay {
+            color: #ff8c42;
+        }
+        
+        /* sidebar (three hyphens) */
+        .sidebar {
+            position: fixed;
+            top: 0;
+            left: -320px;
+            width: 300px;
+            height: 100%;
+            background: rgba(10, 10, 26, 0.95);
             backdrop-filter: blur(16px);
-            padding: 8px 24px;
+            z-index: 200;
+            transition: left 0.3s ease;
+            padding: 24px 16px;
+            border-right: 1px solid #ffb34760;
+            box-shadow: 4px 0 20px rgba(0,0,0,0.5);
+            overflow-y: auto;
+        }
+        .sidebar.open {
+            left: 0;
+        }
+        .sidebar h3 {
+            color: #ffd966;
+            margin-top: 0;
+            border-bottom: 1px solid #ffb347;
+            padding-bottom: 8px;
+        }
+        .menu-hyphen {
+            font-size: 2rem;
+            cursor: pointer;
+            padding: 0 16px;
+            color: #ffd966;
+            font-weight: bold;
+            letter-spacing: 4px;
+        }
+        .sidebar-section {
+            margin: 20px 0;
+        }
+        .sidebar-btn {
+            width: 100%;
+            background: #1e1a3a;
+            border: none;
+            padding: 10px;
+            margin: 6px 0;
+            border-radius: 40px;
+            color: #ffdfa0;
+            font-weight: bold;
+            cursor: pointer;
+            transition: 0.08s linear;
+        }
+        .sidebar-btn:active { transform: scale(0.97); background: #3a2e70; }
+        .toggle-row {
             display: flex;
-            flex-wrap: wrap;
             justify-content: space-between;
             align-items: center;
-            border-bottom: 1px solid rgba(255, 200, 80, 0.3);
-            gap: 12px;
+            margin: 12px 0;
+        }
+        .toggle-switch {
+            width: 44px;
+            height: 22px;
+            background: #333;
+            border-radius: 30px;
+            cursor: pointer;
+            position: relative;
+        }
+        .toggle-switch.active {
+            background: #ffb347;
+        }
+        .toggle-switch:after {
+            content: "";
+            width: 18px;
+            height: 18px;
+            background: white;
+            border-radius: 50%;
+            position: absolute;
+            top: 2px;
+            left: 3px;
+            transition: 0.1s;
+        }
+        .toggle-switch.active:after { left: 23px; }
+
+        /* main layout */
+        .menu-bar {
+            background: rgba(0, 0, 0, 0.75);
+            backdrop-filter: blur(16px);
+            padding: 8px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid rgba(255, 200, 80, 0.4);
             position: sticky;
             top: 0;
             z-index: 100;
         }
-
         .logo {
             font-weight: 800;
             background: linear-gradient(135deg, #FFD966, #FF8C42);
             -webkit-background-clip: text;
             background-clip: text;
             color: transparent;
-            font-size: 1.4rem;
+            font-size: 1.3rem;
         }
-
-        .menu-controls {
-            display: flex;
-            gap: 12px;
-            flex-wrap: wrap;
-            align-items: center;
-        }
-
-        .menu-btn {
-            background: #1e1a2f;
-            border: none;
-            color: #ffd966;
-            font-size: 1.2rem;
-            padding: 6px 12px;
-            border-radius: 40px;
-            cursor: pointer;
-            transition: 0.1s;
-            font-weight: bold;
-            display: flex;
-            align-items: center;
-            gap: 6px;
-        }
-
-        .menu-btn:active { transform: scale(0.96); background: #2f2950; }
-        .toggle-active { background: #5a3e2b; color: #ffdfa0; box-shadow: 0 0 6px gold; }
-
-        /* main game panel */
         .game-container {
-            max-width: 800px;
+            max-width: 820px;
             margin: 20px auto;
             background: rgba(5, 8, 22, 0.7);
             backdrop-filter: blur(12px);
             border-radius: 48px;
             padding: 20px 24px 30px;
             box-shadow: 0 25px 40px black;
-            border: 1px solid #f0a34b40;
+            border: 1px solid #f0a34b60;
         }
-
-        .multiplier-area {
-            text-align: center;
-        }
-
         #multiplierDisplay {
             font-size: 5rem;
             font-weight: 900;
@@ -92,19 +152,15 @@
             -webkit-background-clip: text;
             background-clip: text;
             color: transparent;
-            text-shadow: 0 0 20px rgba(255,160,0,0.5);
             font-family: monospace;
         }
-
         canvas {
             width: 100%;
             background: #010106;
             border-radius: 32px;
             margin: 12px 0;
             display: block;
-            border: 1px solid #f0a34b60;
         }
-
         .info-panel {
             display: flex;
             justify-content: space-between;
@@ -113,13 +169,9 @@
             padding: 12px 20px;
             margin: 16px 0;
             flex-wrap: wrap;
-            gap: 12px;
         }
-
         .wallet-card { flex: 1; text-align: center; }
-        .label { font-size: 0.7rem; color: #aa99ff; }
         .value { font-size: 1.6rem; font-weight: bold; color: #FFE5A3; }
-
         .bet-panel {
             background: #0b0722;
             border-radius: 60px;
@@ -130,51 +182,39 @@
             align-items: center;
             justify-content: space-between;
         }
-
-        .bet-input {
-            background: #01000c;
-            padding: 6px 18px;
-            border-radius: 50px;
-        }
         .bet-input input {
-            background: transparent;
+            background: #01000c;
             border: none;
             font-size: 1.3rem;
             width: 100px;
             color: gold;
             font-weight: bold;
+            padding: 6px 12px;
+            border-radius: 40px;
         }
-
-        .chip { background: #2a2350; border: none; padding: 8px 16px; border-radius: 40px; color: white; cursor: pointer; margin: 0 4px; }
-
-        .action-buttons {
-            display: flex;
-            gap: 16px;
-            margin: 18px 0;
-        }
-        .btn {
-            flex: 1;
-            padding: 14px;
-            font-weight: bold;
-            border: none;
-            border-radius: 60px;
-            font-size: 1.1rem;
-            cursor: pointer;
-        }
+        .chip { background: #2a2350; border: none; padding: 8px 14px; border-radius: 40px; color: white; cursor: pointer; margin: 0 4px; }
+        .action-buttons { display: flex; gap: 16px; margin: 18px 0; }
+        .btn { flex: 1; padding: 14px; font-weight: bold; border: none; border-radius: 60px; font-size: 1.1rem; cursor: pointer; }
         .btn-bet { background: #2b7a3e; color: white; box-shadow: 0 4px 0 #124d23; }
         .btn-cashout { background: #e07c1f; color: #1e1a0a; box-shadow: 0 4px 0 #8a4f0e; }
         .btn:active { transform: translateY(2px); }
-        .btn:disabled { opacity: 0.5; transform: none; }
-
         .history-area { margin-top: 20px; background: #02000c80; border-radius: 40px; padding: 12px; }
-        .history-list { display: flex; flex-wrap: wrap; gap: 8px; }
+        .history-list { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 6px; }
 
+        /* leaderboards */
+        .leaderboard-entry {
+            display: flex;
+            justify-content: space-between;
+            padding: 6px 0;
+            border-bottom: 1px solid #ffb34740;
+            font-size: 0.85rem;
+        }
         .modal {
             position: fixed;
             top: 0; left: 0;
             width: 100%; height: 100%;
             background: #000000cc;
- backdrop-filter: blur(8px);
+            backdrop-filter: blur(8px);
             display: flex;
             align-items: center;
             justify-content: center;
@@ -184,34 +224,58 @@
             background: #15122b;
             border-radius: 48px;
             padding: 24px;
-            width: 300px;
+            max-width: 400px;
+            width: 90%;
             text-align: center;
             border: 1px solid gold;
+            max-height: 80vh;
+            overflow-y: auto;
         }
-        input, button { font-family: inherit; }
-        .refer-code { background: #2f2a4a; padding: 8px; border-radius: 30px; margin: 12px 0; }
-        .close-modal { background: #7a5a2a; margin-top: 16px; }
+        .manual-step { background: #0f0c21; margin: 12px 0; padding: 12px; border-radius: 28px; text-align: left; }
+        .close-modal { background: #7a5a2a; margin-top: 16px; padding: 8px 20px; border: none; border-radius: 40px; color: white; cursor: pointer; }
     </style>
 </head>
 <body>
 
 <div class="menu-bar">
-    <div class="logo">⚡ CRASH X · NEBULA</div>
-    <div class="menu-controls">
-        <button class="menu-btn" id="brightnessToggle">☀️ Bright</button>
-        <button class="menu-btn" id="soundToggle">🔊 Sound</button>
-        <button class="menu-btn" id="musicToggle">🎵 Music</button>
-        <button class="menu-btn" id="animationToggle">✨ Anim</button>
-        <button class="menu-btn" id="turboToggle">🚀 Turbo</button>
-        <button class="menu-btn" id="slowModeBtn">🐢 Slow</button>
-        <button class="menu-btn" id="referBtn">🏆 Refer & Earn</button>
+    <div class="menu-hyphen" id="menuHyphen">☰</div>
+    <div class="logo">💥 NEBULA CRASH</div>
+    <div style="width:40px;"></div>
+</div>
+
+<!-- Sidebar -->
+<div class="sidebar" id="sidebar">
+    <h3>⚙️ SETTINGS & MENU</h3>
+    <div class="sidebar-section">
+        <div class="toggle-row"><span>🌙 Dark / ☀️ Light</span><div id="darkLightToggle" class="toggle-switch"></div></div>
+        <div class="toggle-row"><span>🔊 Sound Effects</span><div id="soundToggleSide" class="toggle-switch active"></div></div>
+        <div class="toggle-row"><span>🎵 Background Music</span><div id="musicToggleSide" class="toggle-switch"></div></div>
+        <div class="toggle-row"><span>✨ Animations</span><div id="animToggleSide" class="toggle-switch active"></div></div>
+        <div class="toggle-row"><span>🚀 Turbo Mode</span><div id="turboToggleSide" class="toggle-switch"></div></div>
+        <div class="toggle-row"><span>🐢 Slow Mode</span><div id="slowToggleSide" class="toggle-switch"></div></div>
+    </div>
+    <div class="sidebar-section">
+        <button class="sidebar-btn" id="profileBtn">👤 MY PROFILE</button>
+        <button class="sidebar-btn" id="depositBtnSide">💰 DEPOSIT</button>
+        <button class="sidebar-btn" id="withdrawBtnSide">💸 WITHDRAW</button>
+        <button class="sidebar-btn" id="manualBtnSide">📖 MANUAL</button>
+        <button class="sidebar-btn" id="referBtnSide">🏆 REFER & EARN</button>
+    </div>
+    <div class="sidebar-section">
+        <h3>🏅 WEEKLY LEADERBOARD (Top 5)</h3>
+        <div id="weeklyLeaders"></div>
+        <h3>📅 MONTHLY BEST</h3>
+        <div id="monthlyLeaders"></div>
+        <h3>⚡ DAILY HIGH</h3>
+        <div id="dailyLeaders"></div>
+        <p style="font-size:10px; color:#aaa;">*Fake players for excitement</p>
     </div>
 </div>
 
 <div class="game-container">
-    <div class="multiplier-area">
+    <div style="text-align:center">
         <div id="multiplierDisplay">1.00x</div>
-        <div id="statusMsg" style="font-size:0.8rem; color:#ffbf69;">⚡ Waiting for bet</div>
+        <div id="statusMsg" style="font-size:0.85rem; background:#00000060; display:inline-block; padding:4px 16px; border-radius:60px;">⚡ WAITING FOR BET</div>
     </div>
     <canvas id="crashCanvas" width="700" height="340" style="width:100%; aspect-ratio:700/340"></canvas>
 
@@ -227,7 +291,7 @@
     </div>
 
     <div class="action-buttons">
-        <button class="btn btn-bet" id="placeBetBtn">🛸 PLACE BET</button>
+        <button class="btn btn-bet" id="placeBetBtn">🚀 PLACE BET</button>
         <button class="btn btn-cashout" id="cashoutBtn" disabled>💎 CASH OUT</button>
     </div>
 
@@ -238,7 +302,6 @@
 </div>
 
 <script>
-    // ---------- ADVANCED FEATURES ----------
     // DOM elements
     const multiplierDisplay = document.getElementById('multiplierDisplay');
     const statusSpan = document.getElementById('statusMsg');
@@ -251,12 +314,14 @@
     const historyDiv = document.getElementById('historyList');
     const canvas = document.getElementById('crashCanvas');
     const ctx = canvas.getContext('2d');
+    const sidebar = document.getElementById('sidebar');
+    const menuHyphen = document.getElementById('menuHyphen');
 
-    // Game core state
-    let balance = 1000.0;        // main wallet
-    let referBonus = 0.0;        // refer earnings (cannot withdraw until reaches 1000)
+    // Game state
+    let balance = 1000.0;
+    let referBonus = 0.0;
     let currentBet = 0;
-    let isGameActive = false;     // round running
+    let isGameActive = false;
     let hasCashed = false;
     let currentMultiplier = 1.00;
     let crashPoint = 1.00;
@@ -264,319 +329,251 @@
     let roundStart = 0;
     let crashHistory = [];
 
-    // Turbo / Slow mode (affects multiplier speed)
-    let turboMode = false;        // faster rise
-    let slowMode = false;         // reduced speed (overrides turbo if both false neutral)
-    let animationEnabled = true;
+    // Settings
+    let turboMode = false;
+    let slowMode = false;
     let soundEnabled = true;
     let musicEnabled = false;
-    let brightnessLevel = 1;      // 1 = normal, 0 = dark (just css class)
-    let musicAudio = null;
-    let cashoutSound = null;
-    let crashSound = null;
-    let bgMusicPlaying = false;
+    let animationsEnabled = true;
+    let darkMode = true;
+    let musicInterval = null;
 
-    // helper sounds (web audio simple)
+    // Fake players data for leaderboards
+    const fakeNames = ["AstroMiner", "LunaWolf", "CryptoKing", "NebulaHunter", "RiskMaster", "VoltCrafter", "CashOrbit", "DeepDrill"];
+    function generateLeaderboards() {
+        const weekly = [];
+        const monthly = [];
+        const daily = [];
+        for (let i=0; i<5; i++) {
+            weekly.push({ name: fakeNames[Math.floor(Math.random()*fakeNames.length)]+i, mult: (Math.random() * 45 + 5).toFixed(1)+"x" });
+            monthly.push({ name: fakeNames[Math.floor(Math.random()*fakeNames.length)]+(i+10), mult: (Math.random() * 120 + 10).toFixed(1)+"x" });
+            daily.push({ name: fakeNames[Math.floor(Math.random()*fakeNames.length)]+"_"+i, mult: (Math.random() * 25 + 2).toFixed(1)+"x" });
+        }
+        document.getElementById('weeklyLeaders').innerHTML = weekly.map(w => `<div class="leaderboard-entry"><span>🏆 ${w.name}</span><span>${w.mult}</span></div>`).join('');
+        document.getElementById('monthlyLeaders').innerHTML = monthly.map(m => `<div class="leaderboard-entry"><span>🌟 ${m.name}</span><span>${m.mult}</span></div>`).join('');
+        document.getElementById('dailyLeaders').innerHTML = daily.map(d => `<div class="leaderboard-entry"><span>⚡ ${d.name}</span><span>${d.mult}</span></div>`).join('');
+    }
+    generateLeaderboards();
+    setInterval(generateLeaderboards, 30000); // refresh fake players
+
+    // Helper sounds
     function playSound(type) {
         if (!soundEnabled) return;
         try {
-            let audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-            let oscillator = audioCtx.createOscillator();
-            let gain = audioCtx.createGain();
-            oscillator.connect(gain);
+            const AudioCtx = window.AudioContext || window.webkitAudioContext;
+            const audioCtx = new AudioCtx();
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.connect(gain);
             gain.connect(audioCtx.destination);
-            oscillator.type = 'sine';
-            if (type === 'cashout') {
-                oscillator.frequency.value = 880;
-                gain.gain.value = 0.2;
-                oscillator.start();
-                gain.gain.exponentialRampToValueAtTime(0.00001, audioCtx.currentTime + 0.8);
-                oscillator.stop(audioCtx.currentTime + 0.6);
-            } else if (type === 'crash') {
-                oscillator.frequency.value = 220;
-                gain.gain.value = 0.25;
-                oscillator.start();
-                gain.gain.exponentialRampToValueAtTime(0.00001, audioCtx.currentTime + 1);
-                oscillator.stop(audioCtx.currentTime + 0.9);
-            } else if (type === 'bet') {
-                oscillator.frequency.value = 660;
-                gain.gain.value = 0.1;
-                oscillator.start();
-                oscillator.stop(audioCtx.currentTime + 0.2);
-            }
-            audioCtx.close();
-        } catch(e) { }
+            osc.type = 'sine';
+            if (type === 'cashout') { osc.frequency.value = 880; gain.gain.value = 0.15; osc.start(); gain.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime+0.7); osc.stop(audioCtx.currentTime+0.6); }
+            else if (type === 'crash') { osc.frequency.value = 180; gain.gain.value = 0.2; osc.start(); gain.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime+0.9); osc.stop(audioCtx.currentTime+0.8); }
+            else if (type === 'bet') { osc.frequency.value = 660; gain.gain.value = 0.1; osc.start(); osc.stop(audioCtx.currentTime+0.2); }
+            setTimeout(() => audioCtx.close(), 1000);
+        } catch(e) {}
+    }
+    function toggleMusic() {
+        if (musicEnabled) {
+            if (musicInterval) clearInterval(musicInterval);
+            musicInterval = setInterval(() => {
+                if (musicEnabled && soundEnabled) {
+                    try {
+                        const AudioCtx = window.AudioContext || window.webkitAudioContext;
+                        const ctx = new AudioCtx();
+                        const osc = ctx.createOscillator();
+                        const gain = ctx.createGain();
+                        osc.connect(gain);
+                        gain.connect(ctx.destination);
+                        osc.frequency.value = 174;
+                        gain.gain.value = 0.03;
+                        osc.start();
+                        gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime+2.2);
+                        osc.stop(ctx.currentTime+2.2);
+                        setTimeout(() => ctx.close(), 2500);
+                    } catch(e) {}
+                }
+            }, 4200);
+        } else {
+            if (musicInterval) clearInterval(musicInterval);
+            musicInterval = null;
+        }
     }
 
-    function initMusic() {
-        if (!musicEnabled || bgMusicPlaying) return;
-        try {
-            if (musicAudio) musicAudio.pause();
-            musicAudio = new Audio('data:audio/wav;base64,U3RlYWx0aC1zb2Z0LW11c2ljLXdpdGhvdXQtcmVhbC1maWxlLWZha2U='); // dummy, but we generate fake loop with osc?
-            // for simplicity, we use oscillator loop, but we'll implement a simple beep loop? better just use no actual external file, but users expect smooth bgm. we'll use WebAudio synth pad loop
-            // Instead we create a simple ambient drone using setInterval (acceptable demo)
-            if (window.bgmInterval) clearInterval(window.bgmInterval);
-            let actxCtx = new (window.AudioContext || window.webkitAudioContext)();
-            let playLoop = () => {
-                if (!musicEnabled || !bgMusicPlaying) return;
-                let osc = actxCtx.createOscillator();
-                let gain = actxCtx.createGain();
-                osc.connect(gain);
-                gain.connect(actxCtx.destination);
-                osc.type = 'sine';
-                osc.frequency.value = 174;
-                gain.gain.value = 0.05;
-                osc.start();
-                gain.gain.exponentialRampToValueAtTime(0.0001, actxCtx.currentTime + 2);
-                osc.stop(actxCtx.currentTime + 2.2);
-            };
-            bgMusicPlaying = true;
-            window.bgmInterval = setInterval(() => { if(musicEnabled && bgMusicPlaying) playLoop(); }, 2800);
-        } catch(e){}
-    }
-    function stopMusic() { bgMusicPlaying = false; if(window.bgmInterval) clearInterval(window.bgmInterval); }
-
-    // UI brightness
-    function applyBrightness() {
-        if (brightnessLevel === 0) document.body.style.filter = 'brightness(0.7) contrast(1.2)';
-        else document.body.style.filter = 'brightness(1)';
-    }
-
-    // ---------- UNPREDICTABLE CRASH LOGIC ----------
-    // high variance: crash from 1.01 up to 150x, but average ~2.5x, very unpredictable
+    // Crash logic
     function generateUnpredictableCrash() {
         let r = Math.random();
-        let crash;
-        if (r < 0.55) { // 55% chance early crash 1.0x - 2.2x  (player often loses)
-            crash = 1 + Math.random() * 1.2;
-        } else if (r < 0.8) { // 25% mid 2.2x - 5x
-            crash = 2.2 + Math.random() * 2.8;
-        } else if (r < 0.95) { // 15% high 5x - 20x
-            crash = 5 + Math.random() * 15;
-        } else {
-            crash = 20 + Math.random() * 130; // jackpot rare
-        }
-        return parseFloat(crash.toFixed(2));
+        if (r < 0.6) return parseFloat((1 + Math.random() * 0.95).toFixed(2));
+        else if (r < 0.85) return parseFloat((2 + Math.random() * 2.5).toFixed(2));
+        else if (r < 0.97) return parseFloat((5 + Math.random() * 13).toFixed(2));
+        else return parseFloat((18 + Math.random() * 80).toFixed(2));
     }
-
-    // dynamic speed factor depending on turbo/slow
-    function getSpeedFactor() {
-        if (turboMode) return 1.6;
-        if (slowMode) return 0.5;
-        return 1.0;
-    }
-
-    // draw curve
+    function getSpeedFactor() { if (turboMode) return 1.7; if (slowMode) return 0.55; return 1.0; }
     function drawCurve() {
         if (!ctx) return;
         ctx.clearRect(0, 0, canvas.width, canvas.height);
         ctx.fillStyle = '#010106';
         ctx.fillRect(0, 0, canvas.width, canvas.height);
-        let maxMulti = (isGameActive && currentMultiplier) ? Math.max(currentMultiplier, crashPoint) : crashPoint;
-        if (maxMulti < 1.5) maxMulti = 3;
-        for (let x = 0; x <= canvas.width; x+=6) {
-            let t = x / canvas.width;
-            let mult = 1 + (maxMulti-1) * (1 - Math.pow(1-t, 1.8));
-            let y = canvas.height - (mult / maxMulti) * canvas.height;
-            if (x===0) ctx.beginPath();
-            ctx.lineTo(x, y);
+        let maxMult = (isGameActive && currentMultiplier) ? Math.max(currentMultiplier, crashPoint) : (crashPoint || 2);
+        if (maxMult < 1.2) maxMult = 3;
+        ctx.beginPath();
+        for (let x=0; x<=canvas.width; x+=5) {
+            let t = x/canvas.width;
+            let mult = 1 + (maxMult-1) * (1 - Math.pow(1-t, 1.75));
+            let y = canvas.height - (mult/maxMult)*canvas.height;
+            if(x===0) ctx.moveTo(x,y); else ctx.lineTo(x,y);
         }
         ctx.strokeStyle = '#f0a34b';
         ctx.lineWidth = 3;
         ctx.stroke();
-        if (isGameActive && currentMultiplier) {
-            let tPos = Math.min(0.99, (currentMultiplier-1)/(maxMulti-1));
+        if (isGameActive && currentMultiplier>1 && animationsEnabled) {
+            let tPos = Math.min(0.99, (currentMultiplier-1)/(maxMult-1));
             let dotX = canvas.width * tPos;
-            let multY = 1 + (maxMulti-1) * (1 - Math.pow(1-tPos, 1.8));
-            let dotY = canvas.height - (multY / maxMulti) * canvas.height;
+            let multY = 1 + (maxMult-1) * (1 - Math.pow(1-tPos, 1.75));
+            let dotY = canvas.height - (multY/maxMult)*canvas.height;
             ctx.fillStyle = '#ffcc55';
-            ctx.beginPath();
-            ctx.arc(dotX, dotY, 8, 0, Math.PI*2);
-            ctx.fill();
+            ctx.beginPath(); ctx.arc(dotX, dotY, 8, 0, Math.PI*2); ctx.fill();
         }
     }
-
-    // update UI and potential win
     function updateUI() {
         walletSpan.innerText = balance.toFixed(2);
         referBonusSpan.innerText = referBonus.toFixed(2);
-        if (isGameActive && currentBet > 0 && !hasCashed) {
-            let pot = currentBet * currentMultiplier;
-            potentialSpan.innerText = pot.toFixed(2);
-        } else potentialSpan.innerText = "0.00";
-        cashoutBtn.disabled = !(isGameActive && currentBet > 0 && !hasCashed && currentMultiplier > 1.02);
+        if (isGameActive && currentBet>0 && !hasCashed) potentialSpan.innerText = (currentBet*currentMultiplier).toFixed(2);
+        else potentialSpan.innerText = "0.00";
+        cashoutBtn.disabled = !(isGameActive && currentBet>0 && !hasCashed && currentMultiplier>1.02);
     }
-
-    // crash event
     function crashEvent() {
         if (!isGameActive) return;
         if (animationId) cancelAnimationFrame(animationId);
         isGameActive = false;
-        if (currentBet > 0 && !hasCashed) {
-            // LOSS!
-            statusSpan.innerText = `💥 CRASHED at ${crashPoint.toFixed(2)}x · You lost $${currentBet.toFixed(2)}`;
-            playSound('crash');
-            currentBet = 0;
-        } else if (hasCashed) {
-            statusSpan.innerText = `✅ Cashed out at ${currentMultiplier.toFixed(2)}x!`;
-        } else {
-            statusSpan.innerText = `💀 CRASH ${crashPoint.toFixed(2)}x`;
-        }
-        // add to history
+        if (currentBet>0 && !hasCashed) { playSound('crash'); statusSpan.innerText = `💥 CRASHED at ${crashPoint.toFixed(2)}x · Lost $${currentBet.toFixed(2)}`; currentBet=0; }
+        else if (hasCashed) statusSpan.innerText = `✅ Cashed out at ${currentMultiplier.toFixed(2)}x!`;
+        else statusSpan.innerText = `💀 CRASH ${crashPoint.toFixed(2)}x`;
         crashHistory.unshift(crashPoint.toFixed(2)+'x');
-        if(crashHistory.length>10) crashHistory.pop();
-        historyDiv.innerHTML = crashHistory.map(h=>`<span style="background:#1e1a3a; padding:4px 12px; border-radius:30px;">${h}</span>`).join('');
-        currentBet = 0;
-        hasCashed = false;
-        currentMultiplier = 1;
-        multiplierDisplay.innerText = "1.00x";
-        updateUI();
-        drawCurve();
-        // auto restart ready, but user must place bet again
-        setTimeout(() => {
-            if(!isGameActive) statusSpan.innerText = "✨ Place bet to start new round";
-        }, 1000);
+        if(crashHistory.length>12) crashHistory.pop();
+        historyDiv.innerHTML = crashHistory.map(h=>`<span style="background:#1e1a3a; padding:4px 14px; border-radius:30px;">${h}</span>`).join('');
+        currentBet=0; hasCashed=false; currentMultiplier=1;
+        multiplierDisplay.innerText="1.00x";
+        updateUI(); drawCurve();
+        setTimeout(()=>{ if(!isGameActive) statusSpan.innerText = "✨ Place bet to start new round"; },1200);
     }
-
-    // start round animation
     function startRound() {
         if (isGameActive) return;
-        if (currentBet <= 0) { statusSpan.innerText = "Place a bet first!"; return; }
+        if (currentBet<=0) { statusSpan.innerText = "Place a bet first!"; return; }
         crashPoint = generateUnpredictableCrash();
-        currentMultiplier = 1.00;
-        multiplierDisplay.innerText = "1.00x";
-        isGameActive = true;
-        hasCashed = false;
-        roundStart = performance.now();
-        statusSpan.innerText = "🚀 Flying! Cashout anytime...";
-        updateUI();
-        drawCurve();
+        currentMultiplier=1; multiplierDisplay.innerText="1.00x";
+        isGameActive=true; hasCashed=false; roundStart=performance.now();
+        statusSpan.innerText = "🚀 FLYING! Cashout before crash!";
+        updateUI(); drawCurve();
         if(animationId) cancelAnimationFrame(animationId);
         function animate(now) {
-            if (!isGameActive) return;
-            let elapsed = (now - roundStart) / 1000;
-            let speed = getSpeedFactor();
-            let timeRatio = elapsed * speed;
-            let maxTime = 12; // max to crash
-            let t = Math.min(1, timeRatio / maxTime);
-            let mult = 1 + (crashPoint - 1) * Math.pow(t, 1.5);
-            if (mult >= crashPoint || timeRatio >= maxTime) {
-                currentMultiplier = crashPoint;
-                multiplierDisplay.innerText = crashPoint.toFixed(2)+"x";
+            if(!isGameActive) return;
+            let elapsed = (now-roundStart)/1000;
+            let timeRatio = elapsed * getSpeedFactor();
+            let maxDur=11;
+            let t=Math.min(1, timeRatio/maxDur);
+            let mult = 1 + (crashPoint-1)*Math.pow(t,1.45);
+            if(mult>=crashPoint || timeRatio>=maxDur) {
+                currentMultiplier=crashPoint;
+                multiplierDisplay.innerText=crashPoint.toFixed(2)+"x";
                 crashEvent();
                 return;
             }
-            currentMultiplier = parseFloat(mult.toFixed(4));
-            multiplierDisplay.innerText = currentMultiplier.toFixed(2)+"x";
-            if (currentBet > 0 && !hasCashed) updateUI();
-            drawCurve();
+            currentMultiplier=parseFloat(mult.toFixed(4));
+            multiplierDisplay.innerText=currentMultiplier.toFixed(2)+"x";
+            if(currentBet>0 && !hasCashed) updateUI();
+            if(animationsEnabled) drawCurve();
             animationId = requestAnimationFrame(animate);
         }
         animationId = requestAnimationFrame(animate);
     }
-
-    // place bet
     function placeBet() {
-        if (isGameActive) { statusSpan.innerText = "Round active! Cannot place new bet now."; return; }
-        let amount = parseFloat(betInput.value);
-        if (isNaN(amount) || amount <= 0) amount = 10;
-        if (amount < 10) { statusSpan.innerText = "Minimum deposit to bet is $10"; return; }
-        if (amount > balance) { statusSpan.innerText = "Insufficient wallet balance!"; return; }
-        balance -= amount;
-        currentBet = amount;
-        playSound('bet');
-        updateUI();
-        startRound();
+        if(isGameActive){ statusSpan.innerText="Round active!"; return; }
+        let amount=parseFloat(betInput.value);
+        if(isNaN(amount)||amount<10){ statusSpan.innerText="Min bet $10"; return; }
+        if(amount>balance){ statusSpan.innerText="Insufficient balance!"; return; }
+        balance-=amount; currentBet=amount;
+        playSound('bet'); updateUI(); startRound();
     }
-
     function cashOut() {
-        if (!isGameActive || currentBet <= 0 || hasCashed) return;
-        if (currentMultiplier < 1.02) { statusSpan.innerText = "Multiplier too low!"; return; }
-        let winAmount = currentBet * currentMultiplier;
-        balance += winAmount;
-        playSound('cashout');
-        hasCashed = true;
-        statusSpan.innerText = `💰 Cashed out $${winAmount.toFixed(2)} at ${currentMultiplier.toFixed(2)}x!`;
-        currentBet = 0;
-        updateUI();
-        drawCurve();
-        cashoutBtn.disabled = true;
+        if(!isGameActive || currentBet<=0 || hasCashed) return;
+        if(currentMultiplier<1.02){ statusSpan.innerText="Multiplier too low!"; return; }
+        let win=currentBet*currentMultiplier;
+        balance+=win; playSound('cashout');
+        hasCashed=true; statusSpan.innerText=`💰 CASHED $${win.toFixed(2)} at ${currentMultiplier.toFixed(2)}x!`;
+        currentBet=0; updateUI(); drawCurve(); cashoutBtn.disabled=true;
     }
 
-    // referral system
-    let referralCode = "CRASH" + Math.floor(Math.random()*10000);
-    function showReferralModal() {
-        let modalDiv = document.createElement('div');
-        modalDiv.className = 'modal';
-        modalDiv.innerHTML = `
-            <div class="modal-card">
-                <h3>🎁 Refer & Earn</h3>
-                <p>Your code: <strong>${referralCode}</strong></p>
-                <div class="refer-code">Each referral gives you $50 bonus!<br>Withdraw only when refer bonus ≥ $1000</div>
-                <p>💰 Refer Bonus: $${referBonus.toFixed(2)} / $1000 needed</p>
-                <button id="simulateReferBtn" class="chip">+ Simulate Referral</button>
-                <br><br>
-                <button id="closeReferModal" class="menu-btn close-modal">Close</button>
-            </div>
-        `;
-        document.body.appendChild(modalDiv);
-        document.getElementById('simulateReferBtn')?.addEventListener('click', () => {
-            referBonus += 50;
-            referBonusSpan.innerText = referBonus.toFixed(2);
-            statusSpan.innerText = "🎉 Referral bonus +$50 added!";
-            modalDiv.remove();
-        });
-        document.getElementById('closeReferModal')?.addEventListener('click', () => modalDiv.remove());
+    // Banking & Profile
+    function showDeposit() {
+        let amt = parseFloat(prompt("💰 Deposit amount (min $10):", "50"));
+        if(amt>=10) { balance+=amt; updateUI(); statusSpan.innerText=`Deposited $${amt}`; }
+        else alert("Minimum deposit $10");
     }
-
-    // Withdraw / Deposit logic
-    function showBankModal() {
-        let modal = document.createElement('div');
-        modal.className = 'modal';
-        modal.innerHTML = `
-            <div class="modal-card">
-                <h3>🏦 Bank Actions</h3>
-                <p>Wallet: $${balance.toFixed(2)} | Refer bonus: $${referBonus.toFixed(2)}</p>
-                <input type="number" id="bankAmount" placeholder="Amount" style="margin:8px; padding:8px;">
-                <button id="depositBtn" class="chip">Deposit (min $10)</button>
-                <button id="withdrawBtn" class="chip">Withdraw (min $100)</button>
-                <p style="font-size:0.7rem;">Refer earnings withdraw only if ≥ $1000</p>
-                <button id="closeBank" class="menu-btn">Close</button>
-            </div>
-        `;
+    function showWithdraw() {
+        let amt = parseFloat(prompt("💸 Withdraw amount (min $100 from wallet):", "100"));
+        if(amt<100) alert("Minimum withdraw $100");
+        else if(amt<=balance) { balance-=amt; updateUI(); statusSpan.innerText=`Withdrew $${amt}`; }
+        else alert("Insufficient wallet balance");
+    }
+    function showProfile() {
+        alert(`👤 USER: NEBULA_TRADER\n💰 Wallet: $${balance.toFixed(2)}\n🎁 Refer Bonus: $${referBonus.toFixed(2)} (need $1000 to withdraw)\n📊 Total bets placed: ${crashHistory.length}`);
+    }
+    function showManual() {
+        let modal=document.createElement('div'); modal.className='modal';
+        modal.innerHTML=`<div class="modal-card"><h2>📘 CRASH MANUAL</h2>
+        <div class="manual-step"><strong>1.</strong> Deposit min $10 (Wallet).<br><strong>2.</strong> Enter BET (min $10) & click PLACE BET.<br><strong>3.</strong> Multiplier rises. Click CASH OUT before CRASH to win BET x MULTIPLIER.<br><strong>4.</strong> If CRASH hits before cashout → you LOSE the bet.<br><strong>5.</strong> Refer friends → $50 each (needs $1000 refer bonus to withdraw).<br><strong>6.</strong> Withdraw min $100 from wallet.<br><strong>7.</strong> Use ☰ menu for Dark/Light, Turbo/Slow, Music & Animations.<br><strong>8.</strong> Leaderboards show fake top players for fun.<br><strong>9.</strong> CRASH is highly volatile (60% below 2x).</div>
+        <button id="closeManualBtn" class="close-modal">Got it</button></div>`;
         document.body.appendChild(modal);
-        let amountInp = document.getElementById('bankAmount');
-        document.getElementById('depositBtn')?.addEventListener('click', () => {
-            let amt = parseFloat(amountInp.value);
-            if(amt >= 10) { balance += amt; updateUI(); statusSpan.innerText = `Deposited $${amt}`; modal.remove();}
-            else alert("Minimum deposit $10");
-        });
-        document.getElementById('withdrawBtn')?.addEventListener('click', () => {
-            let amt = parseFloat(amountInp.value);
-            if(amt < 100) alert("Minimum withdraw $100");
-            else if(amt <= balance) { balance -= amt; updateUI(); statusSpan.innerText = `Withdrew $${amt}`; modal.remove();}
-            else alert("Insufficient wallet balance");
-        });
-        document.getElementById('closeBank')?.addEventListener('click', () => modal.remove());
+        document.getElementById('closeManualBtn')?.addEventListener('click',()=>modal.remove());
     }
-    // extra turbo slow & brightness handlers
-    document.getElementById('brightnessToggle')?.addEventListener('click',()=>{ brightnessLevel = 1 - brightnessLevel; applyBrightness(); });
-    document.getElementById('soundToggle')?.addEventListener('click',(e)=>{ soundEnabled = !soundEnabled; e.target.style.background = soundEnabled ? "#5a3e2b" : "#1e1a2f"; });
-    document.getElementById('musicToggle')?.addEventListener('click',(e)=>{ musicEnabled = !musicEnabled; if(musicEnabled) initMusic(); else stopMusic(); e.target.style.background = musicEnabled ? "#5a3e2b" : "#1e1a2f"; });
-    document.getElementById('animationToggle')?.addEventListener('click',(e)=>{ animationEnabled = !animationEnabled; if(!animationEnabled) cancelAnimationFrame(animationId); else if(isGameActive)startRound(); e.target.style.background = animationEnabled ? "#5a3e2b" : "#1e1a2f"; });
-    document.getElementById('turboToggle')?.addEventListener('click',(e)=>{ turboMode = !turboMode; if(turboMode) slowMode=false; document.getElementById('slowModeBtn').style.background = slowMode?"#1e1a2f":"#1e1a2f"; e.target.style.background = turboMode?"#5a3e2b":"#1e1a2f"; });
-    document.getElementById('slowModeBtn')?.addEventListener('click',(e)=>{ slowMode = !slowMode; if(slowMode) turboMode=false; document.getElementById('turboToggle').style.background = turboMode?"#1e1a2f":"#1e1a2f"; e.target.style.background = slowMode?"#5a3e2b":"#1e1a2f"; });
-    document.getElementById('referBtn')?.addEventListener('click', showReferralModal);
-    document.querySelectorAll('.chip').forEach(btn => btn.addEventListener('click',(e)=>{ let add=parseInt(btn.dataset.chip); let newVal=parseFloat(betInput.value)+add; if(newVal>balance && !isGameActive)newVal=balance; betInput.value=Math.max(1,newVal); }));
-    placeBtn.addEventListener('click', placeBet);
-    cashoutBtn.addEventListener('click', cashOut);
-    // extra bank shortcut double click on wallet
-    walletSpan.parentElement?.addEventListener('dblclick', showBankModal);
-    function initCanvasResize() { canvas.width = Math.min(700, canvas.parentElement.clientWidth-20); canvas.height = canvas.width * 0.485; drawCurve(); }
-    window.addEventListener('resize', initCanvasResize);
-    initCanvasResize();
+    function showReferral() {
+        let code="NEBULA"+Math.floor(Math.random()*9999);
+        let modal=document.createElement('div'); modal.className='modal';
+        modal.innerHTML=`<div class="modal-card"><h3>🎁 REFER & EARN $50</h3><p>Your code: <strong>${code}</strong></p><p>Each referral gives $50 bonus! Refer bonus needs $1000 to withdraw.</p><p>Current refer bonus: $${referBonus.toFixed(2)}</p><button id="simulateRefer" class="chip">Simulate Referral +$50</button><br><button id="closeRef" class="close-modal">Close</button></div>`;
+        document.body.appendChild(modal);
+        document.getElementById('simulateRefer')?.addEventListener('click',()=>{ referBonus+=50; referBonusSpan.innerText=referBonus.toFixed(2); statusSpan.innerText="+$50 Refer bonus!"; modal.remove(); });
+        document.getElementById('closeRef')?.addEventListener('click',()=>modal.remove());
+    }
+
+    // Sidebar toggles
+    function updateSidebarToggles() {
+        document.querySelectorAll('.toggle-switch').forEach(t => t.classList.remove('active'));
+        if(soundEnabled) document.getElementById('soundToggleSide')?.classList.add('active');
+        if(musicEnabled) document.getElementById('musicToggleSide')?.classList.add('active');
+        if(animationsEnabled) document.getElementById('animToggleSide')?.classList.add('active');
+        if(turboMode) document.getElementById('turboToggleSide')?.classList.add('active');
+        if(slowMode) document.getElementById('slowToggleSide')?.classList.add('active');
+        if(!darkMode) document.getElementById('darkLightToggle')?.classList.add('active');
+        else if(darkMode && document.getElementById('darkLightToggle')) document.getElementById('darkLightToggle').classList.remove('active');
+    }
+    function applyDarkLight() {
+        if(darkMode) document.body.classList.remove('light-mode');
+        else document.body.classList.add('light-mode');
+    }
+    document.getElementById('darkLightToggle')?.addEventListener('click',()=>{ darkMode=!darkMode; applyDarkLight(); updateSidebarToggles(); });
+    document.getElementById('soundToggleSide')?.addEventListener('click',()=>{ soundEnabled=!soundEnabled; updateSidebarToggles(); });
+    document.getElementById('musicToggleSide')?.addEventListener('click',()=>{ musicEnabled=!musicEnabled; toggleMusic(); updateSidebarToggles(); });
+    document.getElementById('animToggleSide')?.addEventListener('click',()=>{ animationsEnabled=!animationsEnabled; if(!animationsEnabled && animationId) cancelAnimationFrame(animationId); if(isGameActive && animationsEnabled) startRound(); drawCurve(); updateSidebarToggles(); });
+    document.getElementById('turboToggleSide')?.addEventListener('click',()=>{ turboMode=!turboMode; if(turboMode) slowMode=false; updateSidebarToggles(); if(isGameActive){ crashEvent(); setTimeout(()=>{ if(currentBet===0) placeBet(); },500); } });
+    document.getElementById('slowToggleSide')?.addEventListener('click',()=>{ slowMode=!slowMode; if(slowMode) turboMode=false; updateSidebarToggles(); if(isGameActive){ crashEvent(); setTimeout(()=>{ if(currentBet===0) placeBet(); },500); } });
+    
+    document.getElementById('profileBtn')?.addEventListener('click',showProfile);
+    document.getElementById('depositBtnSide')?.addEventListener('click',showDeposit);
+    document.getElementById('withdrawBtnSide')?.addEventListener('click',showWithdraw);
+    document.getElementById('manualBtnSide')?.addEventListener('click',showManual);
+    document.getElementById('referBtnSide')?.addEventListener('click',showReferral);
+    menuHyphen.addEventListener('click',()=>sidebar.classList.toggle('open'));
+    document.querySelectorAll('.chip').forEach(btn=>btn.addEventListener('click',(e)=>{ let add=parseInt(btn.dataset.chip); let newVal=parseFloat(betInput.value)+add; if(newVal>balance && !isGameActive) newVal=balance; betInput.value=Math.max(1,newVal.toFixed(2)); }));
+    placeBtn.addEventListener('click',placeBet);
+    cashoutBtn.addEventListener('click',cashOut);
+    function resizeCanvas(){ canvas.width=Math.min(700, canvas.parentElement.clientWidth-20); canvas.height=canvas.width*0.485; drawCurve(); }
+    window.addEventListener('resize',resizeCanvas);
+    resizeCanvas();
     updateUI();
-    statusSpan.innerText = "⭐ Min deposit $10 | Withdraw $100 | Refer $50 (need 1000)";
+    applyDarkLight();
+    updateSidebarToggles();
+    statusSpan.innerText="📖 Open ☰ menu for MANUAL & settings";
 </script>
 </body>
-</html>
+    </html>
